@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import calculators from "@/calculators";
 
-const SITE_URL = "https://bunchofcalcs.com";
+const SITE_URL = "https://www.bunchofcalcs.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const calcPages = calculators.map((calc) => ({

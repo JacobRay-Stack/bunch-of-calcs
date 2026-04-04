@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { CalculatorConfig } from "./types";
 
 const SITE_NAME = "Bunch of Calcs";
-const SITE_URL = "https://bunchofcalcs.com";
+const SITE_URL = "https://www.bunchofcalcs.com";
 
 export function generateCalculatorMetadata(calc: CalculatorConfig): Metadata {
   const title = `${calc.name} | ${SITE_NAME}`;
