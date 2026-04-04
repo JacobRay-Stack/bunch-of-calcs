@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -26,6 +27,10 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </ThemeProvider>
+        <Script
+          src="https://pl29062183.profitablecpmratenetwork.com/e5/1f/ab/e51fab29190e120897df56472090d051.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
