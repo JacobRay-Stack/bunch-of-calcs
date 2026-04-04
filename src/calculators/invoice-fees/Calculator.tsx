@@ -117,12 +117,17 @@ export default function InvoiceFeeCalculator() {
       )}
 
       {/* Reverse calculator */}
-      <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <h3 className="text-sm font-semibold text-gray-700">Want the client to cover the fee?</h3>
-        <p className="mt-1 text-sm text-gray-600">
-          To receive exactly {fmt(invoiceAmount)} after Stripe fees, invoice for{" "}
-          <strong>{fmt((invoiceAmount + 0.3) / (1 - 0.029))}</strong> instead.
-        </p>
+      <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Want the client to cover the fee?</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 mb-2">Invoice these amounts to receive exactly {fmt(invoiceAmount)}:</p>
+        <div className="space-y-1">
+          {results.filter(p => p.fee > 0).slice(0, 4).map((p) => (
+            <div key={p.name} className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+              <span>{p.name}:</span>
+              <span className="font-medium tabular-nums">{fmt((invoiceAmount + p.fixed) / (1 - p.rate / 100))}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <SEOContent>

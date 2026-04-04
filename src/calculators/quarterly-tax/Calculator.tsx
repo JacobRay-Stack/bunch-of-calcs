@@ -4,37 +4,17 @@ import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
+import StateSelector from "@/components/StateSelector";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
-
-const SE_TAXABLE = 0.9235;
-const SE_RATE = 0.153;
-const STANDARD_DEDUCTION = 15700;
-const BRACKETS = [
-  { min: 0, max: 11925, rate: 0.10 },
-  { min: 11925, max: 48475, rate: 0.12 },
-  { min: 48475, max: 103350, rate: 0.22 },
-  { min: 103350, max: 197300, rate: 0.24 },
-  { min: 197300, max: 250525, rate: 0.32 },
-  { min: 250525, max: 626350, rate: 0.35 },
-  { min: 626350, max: Infinity, rate: 0.37 },
-];
-
-function fedTax(income: number) {
-  let tax = 0;
-  for (const b of BRACKETS) {
-    if (income <= b.min) break;
-    tax += (Math.min(income, b.max) - b.min) * b.rate;
-  }
-  return tax;
-}
-
-const QUARTERS = [
-  { label: "Q1", months: "Jan - Mar", dueDate: "April 15, 2026", isPast: true },
-  { label: "Q2", months: "Apr - May", dueDate: "June 15, 2026", isPast: false },
-  { label: "Q3", months: "Jun - Aug", dueDate: "September 15, 2026", isPast: false },
-  { label: "Q4", months: "Sep - Dec", dueDate: "January 15, 2027", isPast: false },
-];
+import {
+  calculateSETax,
+  calculateFederalTax,
+  STANDARD_DEDUCTION_SINGLE,
+  QUARTERLY_DUE_DATES,
+  formatCurrency,
+} from "@/lib/tax";
+import { calculateStateTax } from "@/lib/state-taxes";
 
 export default function QuarterlyTaxCalculator() {
   const [q1Income, setQ1Income] = useState(20000);
@@ -42,6 +22,7 @@ export default function QuarterlyTaxCalculator() {
   const [q3Income, setQ3Income] = useState(20000);
   const [q4Income, setQ4Income] = useState(20000);
   const [totalDeductions, setTotalDeductions] = useState(5000);
+  const [stateAbbr, setStateAbbr] = useState("NONE");
 
   const quarterIncomes = [q1Income, q2Income, q3Income, q4Income];
   const setters = [setQ1Income, setQ2Income, setQ3Income, setQ4Income];
@@ -50,16 +31,12 @@ export default function QuarterlyTaxCalculator() {
     const totalIncome = q1Income + q2Income + q3Income + q4Income;
     const netIncome = totalIncome - totalDeductions;
 
-    // SE tax
-    const seTaxable = netIncome * SE_TAXABLE;
-    const seTax = seTaxable * SE_RATE;
-    const seDeduction = seTax / 2;
+    const se = calculateSETax(netIncome);
+    const taxableIncome = Math.max(0, netIncome - se.seDeduction - STANDARD_DEDUCTION_SINGLE);
+    const federalTax = calculateFederalTax(taxableIncome);
+    const stateTax = calculateStateTax(taxableIncome, stateAbbr);
 
-    // Federal tax
-    const taxableIncome = Math.max(0, netIncome - seDeduction - STANDARD_DEDUCTION);
-    const federalTax = fedTax(taxableIncome);
-
-    const totalTax = seTax + federalTax;
+    const totalTax = se.totalSeTax + federalTax + stateTax;
     const evenPayment = totalTax / 4;
 
     // Proportional payments based on income per quarter
@@ -73,10 +50,10 @@ export default function QuarterlyTaxCalculator() {
       return acc;
     }, []);
 
-    return { totalIncome, netIncome, seTax, federalTax, totalTax, evenPayment, proportional, ytdIncome };
-  }, [q1Income, q2Income, q3Income, q4Income, totalDeductions]);
+    return { totalIncome, netIncome, seTax: se.totalSeTax, federalTax, stateTax, totalTax, evenPayment, proportional, ytdIncome };
+  }, [q1Income, q2Income, q3Income, q4Income, totalDeductions, stateAbbr]);
 
-  const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+  const fmt = formatCurrency;
 
   return (
     <CalculatorLayout
@@ -86,7 +63,7 @@ export default function QuarterlyTaxCalculator() {
       description="Enter your expected income by quarter. See exactly what to pay the IRS each quarter and when it's due."
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {QUARTERS.map((q, i) => (
+        {QUARTERLY_DUE_DATES.map((q, i) => (
           <SliderInput
             key={q.label}
             label={`${q.label} Income (${q.months})`}
@@ -108,6 +85,7 @@ export default function QuarterlyTaxCalculator() {
           step={500}
           helpText="Total deductible business expenses for the year"
         />
+        <StateSelector value={stateAbbr} onChange={setStateAbbr} />
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -131,7 +109,7 @@ export default function QuarterlyTaxCalculator() {
 
       {/* Payment schedule */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {QUARTERS.map((q, i) => (
+        {QUARTERLY_DUE_DATES.map((q, i) => (
           <div
             key={q.label}
             className={`rounded-xl border p-4 ${

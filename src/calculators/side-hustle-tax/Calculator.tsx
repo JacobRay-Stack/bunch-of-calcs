@@ -4,78 +4,53 @@ import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
+import StateSelector from "@/components/StateSelector";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
-
-const BRACKETS = [
-  { min: 0, max: 11925, rate: 0.10 },
-  { min: 11925, max: 48475, rate: 0.12 },
-  { min: 48475, max: 103350, rate: 0.22 },
-  { min: 103350, max: 197300, rate: 0.24 },
-  { min: 197300, max: 250525, rate: 0.32 },
-  { min: 250525, max: 626350, rate: 0.35 },
-  { min: 626350, max: Infinity, rate: 0.37 },
-];
-
-const SE_TAXABLE = 0.9235;
-const SS_RATE = 0.124;
-const MEDICARE_RATE = 0.029;
-const SS_WAGE_BASE = 184500;
-const STANDARD_DEDUCTION = 15700;
-
-function fedTax(income: number) {
-  let tax = 0;
-  for (const b of BRACKETS) {
-    if (income <= b.min) break;
-    tax += (Math.min(income, b.max) - b.min) * b.rate;
-  }
-  return tax;
-}
-
-function getBracket(income: number) {
-  for (const b of [...BRACKETS].reverse()) {
-    if (income > b.min) return b.rate * 100;
-  }
-  return 10;
-}
+import {
+  calculateSETax,
+  calculateFederalTax,
+  getMarginalBracket,
+  STANDARD_DEDUCTION_SINGLE,
+  formatCurrency,
+  formatPercent,
+} from "@/lib/tax";
+import { calculateStateTax } from "@/lib/state-taxes";
 
 export default function SideHustleTaxCalculator() {
   const [w2Income, setW2Income] = useState(55000);
   const [sideIncome, setSideIncome] = useState(15000);
   const [sideExpenses, setSideExpenses] = useState(2000);
+  const [stateAbbr, setStateAbbr] = useState("NONE");
 
   const results = useMemo(() => {
     // Without side hustle
-    const w2Taxable = Math.max(0, w2Income - STANDARD_DEDUCTION);
-    const w2FedTax = fedTax(w2Taxable);
+    const w2Taxable = Math.max(0, w2Income - STANDARD_DEDUCTION_SINGLE);
+    const w2FedTax = calculateFederalTax(w2Taxable);
 
     // With side hustle
     const netSide = sideIncome - sideExpenses;
-    const seTaxable = netSide * SE_TAXABLE;
+    const se = calculateSETax(netSide, w2Income);
 
-    // SE tax on side income
-    const combinedWagesForSS = w2Income + seTaxable;
-    const ssSideBase = Math.max(0, Math.min(seTaxable, SS_WAGE_BASE - w2Income));
-    const ssSideTax = ssSideBase * SS_RATE;
-    const medicareSideTax = seTaxable * MEDICARE_RATE;
-    const seTax = ssSideTax + medicareSideTax;
-
-    const seDeduction = seTax / 2;
-    const combinedTaxable = Math.max(0, w2Income + netSide - seDeduction - STANDARD_DEDUCTION);
-    const combinedFedTax = fedTax(combinedTaxable);
+    const combinedTaxable = Math.max(0, w2Income + netSide - se.seDeduction - STANDARD_DEDUCTION_SINGLE);
+    const combinedFedTax = calculateFederalTax(combinedTaxable);
+    const combinedStateTax = calculateStateTax(combinedTaxable, stateAbbr);
+    const w2StateTax = calculateStateTax(w2Taxable, stateAbbr);
 
     const additionalFedTax = combinedFedTax - w2FedTax;
-    const totalAdditionalTax = seTax + additionalFedTax;
+    const additionalStateTax = combinedStateTax - w2StateTax;
+    const totalAdditionalTax = se.totalSeTax + additionalFedTax + additionalStateTax;
     const sideHustleTakeHome = netSide - totalAdditionalTax;
     const effectiveSideRate = netSide > 0 ? (totalAdditionalTax / netSide) * 100 : 0;
-    const marginalBracket = getBracket(combinedTaxable);
+    const marginalBracket = getMarginalBracket(combinedTaxable);
     const quarterlyPayment = totalAdditionalTax / 4;
 
     return {
       w2FedTax,
       netSide,
-      seTax,
+      seTax: se.totalSeTax,
       additionalFedTax,
+      additionalStateTax,
       totalAdditionalTax,
       sideHustleTakeHome,
       effectiveSideRate,
@@ -83,10 +58,10 @@ export default function SideHustleTaxCalculator() {
       quarterlyPayment,
       combinedTaxable,
     };
-  }, [w2Income, sideIncome, sideExpenses]);
+  }, [w2Income, sideIncome, sideExpenses, stateAbbr]);
 
-  const fmt = (n: number) => "$" + Math.round(Math.abs(n)).toLocaleString("en-US");
-  const pct = (n: number) => n.toFixed(1) + "%";
+  const fmt = formatCurrency;
+  const pct = formatPercent;
 
   return (
     <CalculatorLayout
@@ -123,6 +98,9 @@ export default function SideHustleTaxCalculator() {
           step={500}
           helpText="Deductible business expenses"
         />
+      </div>
+      <div className="mt-4">
+        <StateSelector value={stateAbbr} onChange={setStateAbbr} />
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

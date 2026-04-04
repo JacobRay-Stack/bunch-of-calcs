@@ -45,7 +45,16 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="mt-10">
+      {/* Social proof */}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+        <span><strong className="text-gray-900 dark:text-gray-100">11</strong> free calculators</span>
+        <span className="hidden sm:inline">--</span>
+        <span><strong className="text-gray-900 dark:text-gray-100">100%</strong> free, no signup</span>
+        <span className="hidden sm:inline">--</span>
+        <span>Updated for <strong className="text-gray-900 dark:text-gray-100">2026</strong></span>
+      </div>
+
+      <div className="mt-8">
         <AdSlot size="banner" />
       </div>
 

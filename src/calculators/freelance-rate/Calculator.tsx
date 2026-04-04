@@ -42,7 +42,7 @@ export default function FreelanceRateCalculator() {
       <div className="space-y-5">
         <SliderInput label="Desired Annual Salary" value={salary} onChange={setSalary} min={0} max={300000} step={1000} type="currency" helpText="What you want to take home before personal taxes" />
         <SliderInput label="Annual Business Expenses" value={expenses} onChange={setExpenses} min={0} max={50000} step={500} type="currency" helpText="Software, equipment, insurance, coworking, etc." />
-        <SliderInput label="Self-Employment Tax Rate" value={taxRate} onChange={setTaxRate} min={0} max={60} step={1} type="percentage" helpText="Combined federal + state + self-employment tax" />
+        <SliderInput label="Self-Employment Tax Rate" value={taxRate} onChange={setTaxRate} min={0} max={60} step={1} type="percentage" helpText="Your effective rate, not top bracket. Most freelancers earning $50K-$150K: use 25-30%." />
         <SliderInput label="Vacation Days Per Year" value={vacationDays} onChange={setVacationDays} min={0} max={60} step={1} helpText="Days you won't be billing" />
         <SliderInput label="Sick / Personal Days" value={sickDays} onChange={setSickDays} min={0} max={30} step={1} helpText="Buffer for days you can't work" />
       </div>

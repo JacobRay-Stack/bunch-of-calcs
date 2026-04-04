@@ -3,72 +3,57 @@
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
+import StateSelector from "@/components/StateSelector";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
-
-const SE_TAXABLE = 0.9235;
-const SS_RATE = 0.124;
-const MEDICARE_RATE = 0.029;
-const SS_WAGE_BASE = 184500;
-const STANDARD_DEDUCTION = 15700;
-
-const BRACKETS = [
-  { min: 0, max: 11925, rate: 0.10 },
-  { min: 11925, max: 48475, rate: 0.12 },
-  { min: 48475, max: 103350, rate: 0.22 },
-  { min: 103350, max: 197300, rate: 0.24 },
-  { min: 197300, max: 250525, rate: 0.32 },
-  { min: 250525, max: 626350, rate: 0.35 },
-  { min: 626350, max: Infinity, rate: 0.37 },
-];
-
-function fedTax(income: number) {
-  let tax = 0;
-  for (const b of BRACKETS) {
-    if (income <= b.min) break;
-    tax += (Math.min(income, b.max) - b.min) * b.rate;
-  }
-  return tax;
-}
+import {
+  calculateSETax,
+  calculateFederalTax,
+  STANDARD_DEDUCTION_SINGLE,
+  SS_WAGE_BASE,
+  SS_RATE,
+  MEDICARE_RATE,
+  formatCurrency,
+} from "@/lib/tax";
+import { calculateStateTax } from "@/lib/state-taxes";
 
 export default function ComparisonCalculator() {
   const [income, setIncome] = useState(80000);
   const [businessExpenses, setBusinessExpenses] = useState(5000);
   const [healthInsurance, setHealthInsurance] = useState(6000);
   const [retirement, setRetirement] = useState(0);
+  const [stateAbbr, setStateAbbr] = useState("NONE");
 
   const results = useMemo(() => {
     // W2 calculation
     const w2Gross = income;
-    const w2SS = Math.min(w2Gross, SS_WAGE_BASE) * (SS_RATE / 2); // Employee half
+    const w2SS = Math.min(w2Gross, SS_WAGE_BASE) * (SS_RATE / 2);
     const w2Medicare = w2Gross * (MEDICARE_RATE / 2);
     const w2FICA = w2SS + w2Medicare;
-    const w2Taxable = Math.max(0, w2Gross - STANDARD_DEDUCTION);
-    const w2Federal = fedTax(w2Taxable);
-    const w2TotalTax = w2FICA + w2Federal;
+    const w2Taxable = Math.max(0, w2Gross - STANDARD_DEDUCTION_SINGLE);
+    const w2Federal = calculateFederalTax(w2Taxable);
+    const w2State = calculateStateTax(w2Taxable, stateAbbr);
+    const w2TotalTax = w2FICA + w2Federal + w2State;
     const w2TakeHome = w2Gross - w2TotalTax;
 
     // 1099 calculation
     const net1099 = income - businessExpenses;
-    const seTaxable = net1099 * SE_TAXABLE;
-    const seSS = Math.min(seTaxable, SS_WAGE_BASE) * SS_RATE;
-    const seMedicare = seTaxable * MEDICARE_RATE;
-    const seTax = seSS + seMedicare;
-    const seDeduction = seTax / 2;
+    const se = calculateSETax(net1099);
     const taxable1099 = Math.max(
       0,
-      net1099 - seDeduction - STANDARD_DEDUCTION - healthInsurance - retirement
+      net1099 - se.seDeduction - STANDARD_DEDUCTION_SINGLE - healthInsurance - retirement
     );
-    const federal1099 = fedTax(taxable1099);
-    const totalTax1099 = seTax + federal1099;
+    const federal1099 = calculateFederalTax(taxable1099);
+    const state1099 = calculateStateTax(taxable1099, stateAbbr);
+    const totalTax1099 = se.totalSeTax + federal1099 + state1099;
     const takeHome1099 = net1099 - totalTax1099 - healthInsurance - retirement;
 
     const difference = takeHome1099 - w2TakeHome;
 
-    return { w2TakeHome, w2TotalTax, w2FICA, w2Federal, takeHome1099, totalTax1099, seTax, federal1099, difference, net1099 };
-  }, [income, businessExpenses, healthInsurance, retirement]);
+    return { w2TakeHome, w2TotalTax, w2FICA, w2Federal, w2State, takeHome1099, totalTax1099, seTax: se.totalSeTax, federal1099, state1099, difference, net1099 };
+  }, [income, businessExpenses, healthInsurance, retirement, stateAbbr]);
 
-  const fmt = (n: number) => "$" + Math.round(Math.abs(n)).toLocaleString("en-US");
+  const fmt = formatCurrency;
 
   return (
     <CalculatorLayout
@@ -114,6 +99,7 @@ export default function ComparisonCalculator() {
           step={500}
           helpText="SEP-IRA, Solo 401k, etc."
         />
+        <StateSelector value={stateAbbr} onChange={setStateAbbr} />
       </div>
 
       {/* Side-by-side comparison */}
