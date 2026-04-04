@@ -1,21 +1,32 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 interface AdSlotProps {
   size?: "banner" | "sidebar" | "inline";
 }
 
-const sizeClasses = {
-  banner: "h-24 w-full",
-  sidebar: "h-64 w-full",
-  inline: "h-20 w-full",
-};
-
 export default function AdSlot({ size = "inline" }: AdSlotProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const loadedRef = useRef(false);
+
+  useEffect(() => {
+    if (loadedRef.current || !containerRef.current) return;
+    loadedRef.current = true;
+
+    const script = document.createElement("script");
+    script.src =
+      "https://pl29062183.profitablecpmratenetwork.com/e5/1f/ab/e51fab29190e120897df56472090d051.js";
+    script.async = true;
+    containerRef.current.appendChild(script);
+  }, []);
+
   return (
     <div
-      className={`${sizeClasses[size]} flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-xs text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-600`}
-    >
-      Ad Space
-    </div>
+      ref={containerRef}
+      className={`w-full overflow-hidden rounded-lg ${
+        size === "sidebar" ? "min-h-64" : "min-h-16"
+      }`}
+    />
   );
 }
