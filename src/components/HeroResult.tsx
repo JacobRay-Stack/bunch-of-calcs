@@ -1,0 +1,23 @@
+"use client";
+
+interface HeroResultProps {
+  label: string;
+  value: string;
+  subtext?: string;
+}
+
+export default function HeroResult({ label, value, subtext }: HeroResultProps) {
+  return (
+    <div className="my-8 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 text-center dark:border-blue-800 dark:from-blue-950 dark:to-gray-900">
+      <p className="text-sm font-medium uppercase tracking-wide text-blue-600 dark:text-blue-400">
+        {label}
+      </p>
+      <p className="mt-2 text-5xl font-extrabold tabular-nums text-gray-900 dark:text-gray-100">
+        {value}
+      </p>
+      {subtext && (
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{subtext}</p>
+      )}
+    </div>
+  );
+}
