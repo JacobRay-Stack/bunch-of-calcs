@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { buildCalculatorLink } from "@/lib/calculator-links";
 import SliderInput from "@/components/SliderInput";
 import HeroResult from "@/components/HeroResult";
 import ResultCard from "@/components/ResultCard";
@@ -167,7 +168,7 @@ export default function SelfEmploymentTaxCalculator() {
       {/* Cross-link to quarterly tax */}
       <div className="mt-6 text-center">
         <Link
-          href="/quarterly-tax"
+          href={buildCalculatorLink("quarterly-tax", {})}
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
         >
           See your quarterly payment schedule &rarr;

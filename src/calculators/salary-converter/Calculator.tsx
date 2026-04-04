@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { buildCalculatorLink } from "@/lib/calculator-links";
 import SliderInput from "@/components/SliderInput";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
@@ -196,7 +197,7 @@ export default function SalaryConverter() {
       {/* Cross-link */}
       <div className="mt-6 text-center">
         <Link
-          href="/freelance-rate"
+          href={buildCalculatorLink("freelance-rate", {})}
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
         >
           Is this rate enough? Check with our Rate Calculator &rarr;

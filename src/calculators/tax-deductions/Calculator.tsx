@@ -58,51 +58,43 @@ export default function TaxDeductionCalculator() {
     if (inc) setGrossIncome(Number(inc));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync mileage sub-calc into travel
-  useEffect(() => {
+  // Derive effective expenses by overlaying sub-calculator values onto manual expenses
+  const effectiveExpenses = useMemo(() => {
+    const result = { ...expenses };
     if (businessMiles > 0) {
-      const mileageDeduction = businessMiles * 0.7;
-      setExpenses((prev) => ({ ...prev, travel: Math.round(mileageDeduction) }));
+      result.travel = Math.round(businessMiles * 0.7);
     }
-  }, [businessMiles]);
-
-  // Sync home office sub-calc
-  useEffect(() => {
     if (officeSqFt > 0) {
-      const homeOfficeDeduction = Math.min(officeSqFt * 5, 1500);
-      setExpenses((prev) => ({ ...prev, homeOffice: homeOfficeDeduction }));
+      result.homeOffice = Math.min(officeSqFt * 5, 1500);
     }
-  }, [officeSqFt]);
-
-  // Sync checked missing deductions into "other"
-  useEffect(() => {
     const checkedTotal = MISSING_DEDUCTIONS.reduce(
       (sum, d, i) => sum + (checkedDeductions[i] ? d.estimate : 0),
       0
     );
-    const baseOther = 400; // base "other" value
-    setExpenses((prev) => ({ ...prev, other: baseOther + checkedTotal }));
-  }, [checkedDeductions]);
+    if (checkedTotal > 0) {
+      result.other = expenses.other + checkedTotal;
+    }
+    return result;
+  }, [expenses, businessMiles, officeSqFt, checkedDeductions]);
 
   const results = useMemo(() => {
-    const totalDeductions = Object.values(expenses).reduce((sum, v) => sum + v, 0);
+    const totalDeductions = Object.values(effectiveExpenses).reduce((sum, v) => sum + v, 0);
     const taxSavings = totalDeductions * (taxRate / 100);
     const effectiveIncome = grossIncome - totalDeductions;
     const monthlyTaxSavings = taxSavings / 12;
 
     const sorted = CATEGORIES.map((c) => ({
       ...c,
-      value: expenses[c.key],
-      saving: expenses[c.key] * (taxRate / 100),
+      value: effectiveExpenses[c.key],
+      saving: effectiveExpenses[c.key] * (taxRate / 100),
     })).sort((a, b) => b.value - a.value);
 
     return { totalDeductions, taxSavings, effectiveIncome, monthlyTaxSavings, sorted };
-  }, [grossIncome, taxRate, expenses]);
+  }, [grossIncome, taxRate, effectiveExpenses]);
 
   const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
   const updateExpense = (key: CategoryKey, value: number) => {
-    // Clear sub-calc state when user manually edits
     if (key === "travel") setBusinessMiles(0);
     if (key === "homeOffice") setOfficeSqFt(0);
     setExpenses((prev) => ({ ...prev, [key]: value }));

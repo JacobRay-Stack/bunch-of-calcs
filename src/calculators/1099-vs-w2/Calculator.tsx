@@ -37,9 +37,8 @@ export default function ComparisonCalculator() {
     const w2TotalTax = w2FICA + w2Federal + w2State;
     const w2TakeHome = w2Gross - w2TotalTax;
 
-    // W2 hidden benefits
     const employerHealthInsurance = 4800;
-    const employer401kMatch = income * 0.03;
+    const employer401kMatch = income * 0.04;
     const ptoDays = 15;
     const ptoValue = (income / 260) * ptoDays;
     const w2BenefitsTotal = employerHealthInsurance + employer401kMatch + ptoValue;
@@ -186,7 +185,7 @@ export default function ComparisonCalculator() {
                   <span className="tabular-nums">{fmt(results.employerHealthInsurance)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                  <span>401k Match (3%)</span>
+                  <span>401k Match (4%)</span>
                   <span className="tabular-nums">{fmt(results.employer401kMatch)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 dark:text-gray-400">

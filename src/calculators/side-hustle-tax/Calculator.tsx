@@ -51,21 +51,26 @@ export default function SideHustleTaxCalculator() {
     // W-4 adjustment: extra per paycheck to skip quarterly payments
     const extraWithholding = payFrequency > 0 ? totalAdditionalTax / payFrequency : 0;
 
-    // "Is it worth it?" threshold: minimum gross side income to net $1,000/month ($12,000/yr)
-    let worthItThreshold = 12000;
-    for (let testIncome = 12000; testIncome <= 200000; testIncome += 500) {
-      const testNet = testIncome - sideExpenses;
+    // Binary search for minimum gross side income to net $12,000/yr ($1,000/mo)
+    const TARGET_NET = 12000;
+    let lo = TARGET_NET;
+    let hi = 200000;
+    while (hi - lo > 500) {
+      const mid = Math.round((lo + hi) / 2);
+      const testNet = mid - sideExpenses;
       const testSE = calculateSETax(testNet, w2Income);
       const testCombinedTaxable = Math.max(0, w2Income + testNet - testSE.seDeduction - STANDARD_DEDUCTION_SINGLE);
       const testCombinedFed = calculateFederalTax(testCombinedTaxable);
       const testCombinedState = calculateStateTax(testCombinedTaxable, stateAbbr);
       const testAdditionalTax = testSE.totalSeTax + (testCombinedFed - w2FedTax) + (testCombinedState - w2StateTax);
       const testTakeHome = testNet - testAdditionalTax;
-      if (testTakeHome >= 12000) {
-        worthItThreshold = testIncome;
-        break;
+      if (testTakeHome >= TARGET_NET) {
+        hi = mid;
+      } else {
+        lo = mid;
       }
     }
+    const worthItThreshold = hi;
 
     return {
       w2FedTax,
