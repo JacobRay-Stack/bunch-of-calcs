@@ -1,33 +1,55 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import { buildCalculatorLink } from "@/lib/calculator-links";
 
 export default function ProjectPriceCalculator() {
+  const searchParams = useSearchParams();
   const [hourlyRate, setHourlyRate] = useState(75);
   const [estimatedHours, setEstimatedHours] = useState(40);
   const [expenses, setExpenses] = useState(200);
   const [profitMargin, setProfitMargin] = useState(20);
   const [bufferPct, setBufferPct] = useState(15);
+  const [revisionRounds, setRevisionRounds] = useState(2);
+
+  useEffect(() => {
+    const rate = searchParams.get("rate");
+    if (rate) setHourlyRate(Number(rate));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const results = useMemo(() => {
     const laborCost = hourlyRate * estimatedHours;
     const buffer = laborCost * (bufferPct / 100);
-    const subtotal = laborCost + buffer + expenses;
+    const revisionCost = revisionRounds * hourlyRate * 2; // 2 hrs per revision round
+    const subtotal = laborCost + buffer + revisionCost + expenses;
     const profit = subtotal * (profitMargin / 100);
     const totalQuote = subtotal + profit;
     const effectiveHourly = estimatedHours > 0 ? totalQuote / estimatedHours : 0;
     const perDay = estimatedHours > 0 ? totalQuote / (estimatedHours / 8) : 0;
 
-    return { laborCost, buffer, subtotal, profit, totalQuote, effectiveHourly, perDay };
-  }, [hourlyRate, estimatedHours, expenses, profitMargin, bufferPct]);
+    // Stripe fee calculation for cross-link
+    const stripeFee = totalQuote * 0.029 + 0.3;
+    const afterStripeFee = totalQuote - stripeFee;
+
+    // Payment milestones
+    const milestone1 = totalQuote * 0.5;
+    const milestone2 = totalQuote * 0.25;
+    const milestone3 = totalQuote * 0.25;
+
+    return { laborCost, buffer, revisionCost, subtotal, profit, totalQuote, effectiveHourly, perDay, stripeFee, afterStripeFee, milestone1, milestone2, milestone3 };
+  }, [hourlyRate, estimatedHours, expenses, profitMargin, bufferPct, revisionRounds]);
 
   const fmt = (n: number) =>
     "$" + Math.round(n).toLocaleString("en-US");
+  const fmtCents = (n: number) =>
+    "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <CalculatorLayout
@@ -80,6 +102,15 @@ export default function ProjectPriceCalculator() {
           max={100}
           helpText="Your profit on top of costs"
         />
+        <SliderInput
+          label="Revision Rounds"
+          value={revisionRounds}
+          onChange={setRevisionRounds}
+          min={0}
+          max={10}
+          step={1}
+          helpText="Included revisions (~2 hrs each)"
+        />
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -102,41 +133,90 @@ export default function ProjectPriceCalculator() {
       </div>
 
       {/* Quote breakdown */}
-      <div className="mt-8 rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700">Quote Breakdown</h3>
+      <div className="mt-8 rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700">
+        <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Quote Breakdown</h3>
         </div>
-        <div className="divide-y divide-gray-100">
-          <div className="flex justify-between px-5 py-3 text-sm text-gray-700">
+        <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <div className="flex justify-between px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
             <span>Labor ({estimatedHours}hrs x {fmt(hourlyRate)})</span>
             <span className="tabular-nums font-medium">{fmt(results.laborCost)}</span>
           </div>
-          <div className="flex justify-between px-5 py-3 text-sm text-gray-700">
+          <div className="flex justify-between px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
             <span>Scope Buffer ({bufferPct}%)</span>
             <span className="tabular-nums font-medium">{fmt(results.buffer)}</span>
           </div>
-          <div className="flex justify-between px-5 py-3 text-sm text-gray-700">
+          {revisionRounds > 0 && (
+            <div className="flex justify-between px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
+              <span>Revisions ({revisionRounds} rounds x 2hrs x {fmt(hourlyRate)})</span>
+              <span className="tabular-nums font-medium">{fmt(results.revisionCost)}</span>
+            </div>
+          )}
+          <div className="flex justify-between px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
             <span>Expenses</span>
             <span className="tabular-nums font-medium">{fmt(expenses)}</span>
           </div>
-          <div className="flex justify-between px-5 py-3 text-sm text-gray-600 bg-gray-50">
+          <div className="flex justify-between px-5 py-3 text-sm text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
             <span>Subtotal</span>
             <span className="tabular-nums font-medium">{fmt(results.subtotal)}</span>
           </div>
-          <div className="flex justify-between px-5 py-3 text-sm text-gray-700">
+          <div className="flex justify-between px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
             <span>Profit Margin ({profitMargin}%)</span>
-            <span className="tabular-nums font-medium text-green-600">+{fmt(results.profit)}</span>
+            <span className="tabular-nums font-medium text-green-600 dark:text-green-400">+{fmt(results.profit)}</span>
           </div>
-          <div className="flex justify-between px-5 py-4 text-base font-bold text-gray-900 bg-blue-50">
+          <div className="flex justify-between px-5 py-4 text-base font-bold text-gray-900 bg-blue-50 dark:text-gray-100 dark:bg-blue-950">
             <span>Total Project Quote</span>
             <span className="tabular-nums">{fmt(results.totalQuote)}</span>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
-        <h3 className="text-sm font-semibold text-amber-800">Pricing tip</h3>
-        <p className="mt-1 text-sm text-amber-700">
+      {/* Payment milestone table */}
+      <div className="mt-6 rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700">
+        <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Suggested Payment Milestones</h3>
+        </div>
+        <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <div className="flex justify-between px-5 py-3 text-sm">
+            <div>
+              <span className="font-medium text-gray-900 dark:text-gray-100">50% Upfront</span>
+              <span className="ml-2 text-gray-500 dark:text-gray-400">-- before work begins</span>
+            </div>
+            <span className="tabular-nums font-bold text-gray-900 dark:text-gray-100">{fmt(results.milestone1)}</span>
+          </div>
+          <div className="flex justify-between px-5 py-3 text-sm">
+            <div>
+              <span className="font-medium text-gray-900 dark:text-gray-100">25% Midpoint</span>
+              <span className="ml-2 text-gray-500 dark:text-gray-400">-- at project halfway mark</span>
+            </div>
+            <span className="tabular-nums font-bold text-gray-900 dark:text-gray-100">{fmt(results.milestone2)}</span>
+          </div>
+          <div className="flex justify-between px-5 py-3 text-sm">
+            <div>
+              <span className="font-medium text-gray-900 dark:text-gray-100">25% Delivery</span>
+              <span className="ml-2 text-gray-500 dark:text-gray-400">-- on final delivery</span>
+            </div>
+            <span className="tabular-nums font-bold text-gray-900 dark:text-gray-100">{fmt(results.milestone3)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Cross-link to Invoice Fees */}
+      <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          Send via Stripe? After fees you&apos;ll receive <strong>{fmtCents(results.afterStripeFee)}</strong> ({fmtCents(results.stripeFee)} in fees).
+        </p>
+        <Link
+          href={buildCalculatorLink("invoice-fees", { amount: Math.round(results.totalQuote) })}
+          className="mt-2 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+        >
+          Compare all processor fees &rarr;
+        </Link>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+        <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Pricing tip</h3>
+        <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
           Always include a scope-creep buffer. Projects almost never take exactly the estimated hours.
           A 15-25% buffer protects your profit without scaring the client -- it&apos;s built into your quote,
           not listed as a separate line item.
@@ -149,7 +229,7 @@ export default function ProjectPriceCalculator() {
         <p>The basic formula: (Hourly Rate x Estimated Hours) + Scope Buffer + Expenses + Profit Margin = Project Quote. Each component serves a purpose, and skipping any of them means leaving money on the table or losing money on the project.</p>
 
         <h2>Why You Need a Scope Creep Buffer</h2>
-        <p>Scope creep is when a project grows beyond the original agreement. It happens on almost every project -- the client adds "just one more thing" or the requirements evolve as you work. A 15-25% buffer protects your profit margin when this happens.</p>
+        <p>Scope creep is when a project grows beyond the original agreement. It happens on almost every project -- the client adds &quot;just one more thing&quot; or the requirements evolve as you work. A 15-25% buffer protects your profit margin when this happens.</p>
         <p>The key is to build the buffer into your quote, not list it separately. A $5,000 quote with a built-in 20% buffer means you estimated 33 hours but quoted based on 40. If scope creep happens, you are covered. If it does not, you earn more per hour than expected.</p>
 
         <h2>When to Use Hourly vs Project Pricing</h2>

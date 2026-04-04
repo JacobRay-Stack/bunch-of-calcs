@@ -23,6 +23,7 @@ export default function ComparisonCalculator() {
   const [healthInsurance, setHealthInsurance] = useState(6000);
   const [retirement, setRetirement] = useState(0);
   const [stateAbbr, setStateAbbr] = useState("NONE");
+  const [viewMode, setViewMode] = useState<"annual" | "monthly">("annual");
 
   const results = useMemo(() => {
     // W2 calculation
@@ -35,6 +36,14 @@ export default function ComparisonCalculator() {
     const w2State = calculateStateTax(w2Taxable, stateAbbr);
     const w2TotalTax = w2FICA + w2Federal + w2State;
     const w2TakeHome = w2Gross - w2TotalTax;
+
+    // W2 hidden benefits
+    const employerHealthInsurance = 4800;
+    const employer401kMatch = income * 0.03;
+    const ptoDays = 15;
+    const ptoValue = (income / 260) * ptoDays;
+    const w2BenefitsTotal = employerHealthInsurance + employer401kMatch + ptoValue;
+    const w2TotalComp = w2TakeHome + w2BenefitsTotal;
 
     // 1099 calculation
     const net1099 = income - businessExpenses;
@@ -50,10 +59,23 @@ export default function ComparisonCalculator() {
 
     const difference = takeHome1099 - w2TakeHome;
 
-    return { w2TakeHome, w2TotalTax, w2FICA, w2Federal, w2State, takeHome1099, totalTax1099, seTax: se.totalSeTax, federal1099, state1099, difference, net1099 };
+    // Reverse rate: what hourly rate matches W2 total comp as freelancer
+    const billableHours = 1500;
+    const effectiveTaxRate = net1099 > 0 ? totalTax1099 / net1099 : 0.3;
+    const requiredGross = (w2TotalComp + healthInsurance + retirement) / (1 - effectiveTaxRate);
+    const equivalentHourlyRate = requiredGross / billableHours;
+
+    return {
+      w2TakeHome, w2TotalTax, w2FICA, w2Federal, w2State,
+      w2BenefitsTotal, employerHealthInsurance, employer401kMatch, ptoValue, w2TotalComp,
+      takeHome1099, totalTax1099, seTax: se.totalSeTax, federal1099, state1099,
+      difference, net1099, equivalentHourlyRate,
+    };
   }, [income, businessExpenses, healthInsurance, retirement, stateAbbr]);
 
-  const fmt = formatCurrency;
+  const divisor = viewMode === "monthly" ? 12 : 1;
+  const suffix = viewMode === "monthly" ? "/mo" : "/yr";
+  const fmt = (n: number) => formatCurrency(n / divisor);
 
   return (
     <CalculatorLayout
@@ -102,57 +124,104 @@ export default function ComparisonCalculator() {
         <StateSelector value={stateAbbr} onChange={setStateAbbr} />
       </div>
 
+      {/* View toggle */}
+      <div className="mt-6 flex justify-center">
+        <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <button
+            onClick={() => setViewMode("annual")}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              viewMode === "annual"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
+            }`}
+          >
+            Annual
+          </button>
+          <button
+            onClick={() => setViewMode("monthly")}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              viewMode === "monthly"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
+            }`}
+          >
+            Monthly
+          </button>
+        </div>
+      </div>
+
       {/* Side-by-side comparison */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {/* W2 Column */}
-        <div className="rounded-xl border border-gray-200 overflow-hidden">
-          <div className="bg-gray-100 px-4 py-3 text-center">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">W2 Employee</h3>
+        <div className="rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700">
+          <div className="bg-gray-100 px-4 py-3 text-center dark:bg-gray-800">
+            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide dark:text-gray-300">W2 Employee</h3>
           </div>
           <div className="p-5 space-y-4">
             <div className="text-center">
-              <p className="text-sm text-gray-500">Annual Take-Home</p>
-              <p className="text-3xl font-bold text-gray-900">{fmt(results.w2TakeHome)}</p>
-              <p className="text-sm text-gray-500 mt-1">{fmt(results.w2TakeHome / 12)}/mo</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Take-Home {suffix}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{fmt(results.w2TakeHome)}</p>
             </div>
-            <div className="space-y-2 text-sm border-t border-gray-100 pt-4">
-              <div className="flex justify-between text-gray-600">
+            <div className="space-y-2 text-sm border-t border-gray-100 dark:border-gray-700 pt-4">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>FICA (employee half)</span>
                 <span className="tabular-nums">{fmt(results.w2FICA)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Federal Income Tax</span>
                 <span className="tabular-nums">{fmt(results.w2Federal)}</span>
               </div>
-              <div className="flex justify-between font-semibold text-gray-900 border-t border-gray-100 pt-2">
+              <div className="flex justify-between font-semibold text-gray-900 dark:text-gray-100 border-t border-gray-100 dark:border-gray-700 pt-2">
                 <span>Total Tax</span>
                 <span className="tabular-nums">{fmt(results.w2TotalTax)}</span>
+              </div>
+            </div>
+
+            {/* Hidden W2 compensation */}
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Hidden W2 Compensation</h4>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                  <span>Employer Health Insurance</span>
+                  <span className="tabular-nums">{fmt(results.employerHealthInsurance)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                  <span>401k Match (3%)</span>
+                  <span className="tabular-nums">{fmt(results.employer401kMatch)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                  <span>PTO Value (15 days)</span>
+                  <span className="tabular-nums">{fmt(results.ptoValue)}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-gray-900 dark:text-gray-100 border-t border-gray-100 dark:border-gray-700 pt-1.5">
+                  <span>Total Benefits Value</span>
+                  <span className="tabular-nums text-green-600 dark:text-green-400">{fmt(results.w2BenefitsTotal)}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* 1099 Column */}
-        <div className="rounded-xl border border-blue-200 overflow-hidden">
-          <div className="bg-blue-50 px-4 py-3 text-center">
-            <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wide">1099 Freelancer</h3>
+        <div className="rounded-xl border border-blue-200 overflow-hidden dark:border-blue-800">
+          <div className="bg-blue-50 px-4 py-3 text-center dark:bg-blue-950">
+            <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wide dark:text-blue-300">1099 Freelancer</h3>
           </div>
           <div className="p-5 space-y-4">
             <div className="text-center">
-              <p className="text-sm text-gray-500">Annual Take-Home</p>
-              <p className="text-3xl font-bold text-blue-700">{fmt(results.takeHome1099)}</p>
-              <p className="text-sm text-gray-500 mt-1">{fmt(results.takeHome1099 / 12)}/mo</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Take-Home {suffix}</p>
+              <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{fmt(results.takeHome1099)}</p>
             </div>
-            <div className="space-y-2 text-sm border-t border-gray-100 pt-4">
-              <div className="flex justify-between text-gray-600">
+            <div className="space-y-2 text-sm border-t border-gray-100 dark:border-gray-700 pt-4">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>SE Tax (15.3%)</span>
                 <span className="tabular-nums">{fmt(results.seTax)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Federal Income Tax</span>
                 <span className="tabular-nums">{fmt(results.federal1099)}</span>
               </div>
-              <div className="flex justify-between font-semibold text-gray-900 border-t border-gray-100 pt-2">
+              <div className="flex justify-between font-semibold text-gray-900 dark:text-gray-100 border-t border-gray-100 dark:border-gray-700 pt-2">
                 <span>Total Tax</span>
                 <span className="tabular-nums">{fmt(results.totalTax1099)}</span>
               </div>
@@ -165,24 +234,34 @@ export default function ComparisonCalculator() {
       <div
         className={`mt-6 rounded-lg p-4 text-center ${
           results.difference >= 0
-            ? "border border-green-200 bg-green-50"
-            : "border border-red-200 bg-red-50"
+            ? "border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
+            : "border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950"
         }`}
       >
-        <p className="text-sm font-medium text-gray-700">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
           As a 1099 freelancer, you take home
         </p>
         <p
           className={`text-2xl font-bold ${
-            results.difference >= 0 ? "text-green-700" : "text-red-700"
+            results.difference >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
           }`}
         >
-          {fmt(results.difference)} {results.difference >= 0 ? "more" : "less"}
+          {formatCurrency(results.difference)} {results.difference >= 0 ? "more" : "less"}
         </p>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           {results.difference < 0
             ? "But freelancers can deduct more expenses and set their own rates to compensate."
             : "Your deductions offset the higher self-employment tax."}
+        </p>
+      </div>
+
+      {/* Reverse rate calculator */}
+      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+        <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">What you&apos;d need to charge as a freelancer</h3>
+        <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+          To match the W2 total compensation (take-home + benefits = {formatCurrency(results.w2TotalComp)}/yr), you&apos;d need to charge at least{" "}
+          <strong className="text-amber-900 dark:text-amber-200">{formatCurrency(results.equivalentHourlyRate)}/hr</strong>{" "}
+          at 1,500 billable hours/year.
         </p>
       </div>
 

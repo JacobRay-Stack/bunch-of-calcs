@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import calculators, { getCalculatorBySlug } from "@/calculators";
@@ -28,5 +29,9 @@ export default async function CalculatorPage({ params }: PageProps) {
 
   const Component = calc.component;
 
-  return <Component />;
+  return (
+    <Suspense>
+      <Component />
+    </Suspense>
+  );
 }

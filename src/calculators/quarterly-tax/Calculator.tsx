@@ -16,6 +16,20 @@ import {
 } from "@/lib/tax";
 import { calculateStateTax } from "@/lib/state-taxes";
 
+// ISO dates for Google Calendar links (2026 quarters)
+const QUARTER_DATES = [
+  { iso: "20260415", isoEnd: "20260416" },
+  { iso: "20260615", isoEnd: "20260616" },
+  { iso: "20260915", isoEnd: "20260916" },
+  { iso: "20270115", isoEnd: "20270116" },
+];
+
+function buildCalendarLink(quarter: string, amount: string, date: { iso: string; isoEnd: string }) {
+  const title = encodeURIComponent(`${quarter} Tax Payment $${amount}`);
+  const details = encodeURIComponent(`Pay $${amount} to IRS via https://www.irs.gov/payments\n\nEstimated quarterly tax payment.`);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${date.iso}/${date.isoEnd}&details=${details}`;
+}
+
 export default function QuarterlyTaxCalculator() {
   const [q1Income, setQ1Income] = useState(20000);
   const [q2Income, setQ2Income] = useState(20000);
@@ -23,6 +37,7 @@ export default function QuarterlyTaxCalculator() {
   const [q4Income, setQ4Income] = useState(20000);
   const [totalDeductions, setTotalDeductions] = useState(5000);
   const [stateAbbr, setStateAbbr] = useState("NONE");
+  const [priorYearTax, setPriorYearTax] = useState(0);
 
   const quarterIncomes = [q1Income, q2Income, q3Income, q4Income];
   const setters = [setQ1Income, setQ2Income, setQ3Income, setQ4Income];
@@ -50,8 +65,17 @@ export default function QuarterlyTaxCalculator() {
       return acc;
     }, []);
 
-    return { totalIncome, netIncome, seTax: se.totalSeTax, federalTax, stateTax, totalTax, evenPayment, proportional, ytdIncome };
-  }, [q1Income, q2Income, q3Income, q4Income, totalDeductions, stateAbbr]);
+    // Safe harbor: min of 90% current year or 100%/110% prior year
+    let safeHarborPayment = evenPayment;
+    if (priorYearTax > 0) {
+      const priorYearMultiplier = totalIncome > 150000 ? 1.1 : 1.0;
+      const priorYearSafeHarbor = (priorYearTax * priorYearMultiplier) / 4;
+      const currentYearSafeHarbor = (totalTax * 0.9) / 4;
+      safeHarborPayment = Math.min(priorYearSafeHarbor, currentYearSafeHarbor);
+    }
+
+    return { totalIncome, netIncome, seTax: se.totalSeTax, federalTax, stateTax, totalTax, evenPayment, proportional, ytdIncome, safeHarborPayment };
+  }, [q1Income, q2Income, q3Income, q4Income, totalDeductions, stateAbbr, priorYearTax]);
 
   const fmt = formatCurrency;
 
@@ -75,7 +99,7 @@ export default function QuarterlyTaxCalculator() {
           />
         ))}
       </div>
-      <div className="mt-4 max-w-sm">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <SliderInput
           label="Annual Business Deductions"
           value={totalDeductions}
@@ -85,6 +109,17 @@ export default function QuarterlyTaxCalculator() {
           step={500}
           helpText="Total deductible business expenses for the year"
         />
+        <SliderInput
+          label="Prior Year Total Tax"
+          value={priorYearTax}
+          onChange={setPriorYearTax}
+          type="currency"
+          min={0}
+          step={500}
+          helpText="From last year's return (for safe harbor calc)"
+        />
+      </div>
+      <div className="mt-4">
         <StateSelector value={stateAbbr} onChange={setStateAbbr} />
       </div>
 
@@ -107,44 +142,81 @@ export default function QuarterlyTaxCalculator() {
         />
       </div>
 
+      {/* Safe harbor section */}
+      {priorYearTax > 0 && (
+        <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+          <h3 className="text-sm font-semibold text-green-800 dark:text-green-300">Safe Harbor Payment</h3>
+          <p className="mt-1 text-sm text-green-700 dark:text-green-400">
+            Pay at least <strong className="text-green-900 dark:text-green-200">{fmt(results.safeHarborPayment)}/quarter</strong> to avoid underpayment penalties.
+            {results.totalIncome > 150000 ? " (110% of prior year tax since AGI > $150K)" : " (100% of prior year tax)"}
+          </p>
+          <p className="mt-1 text-xs text-green-600 dark:text-green-500">
+            Based on the lower of 90% of this year&apos;s tax or {results.totalIncome > 150000 ? "110%" : "100%"} of last year&apos;s tax ({fmt(priorYearTax)}).
+          </p>
+        </div>
+      )}
+
       {/* Payment schedule */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {QUARTERLY_DUE_DATES.map((q, i) => (
-          <div
-            key={q.label}
-            className={`rounded-xl border p-4 ${
-              q.isPast
-                ? "border-gray-200 bg-gray-50"
-                : i === 1
-                ? "border-blue-200 bg-blue-50 ring-2 ring-blue-200"
-                : "border-gray-200 bg-white"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-gray-700">{q.label}</span>
-              {q.isPast && (
-                <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">Past</span>
-              )}
-              {!q.isPast && i === 1 && (
-                <span className="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-800">Next</span>
-              )}
+        {QUARTERLY_DUE_DATES.map((q, i) => {
+          const paymentAmount = Math.round(results.proportional[i]);
+          const calLink = buildCalendarLink(q.label, paymentAmount.toLocaleString(), QUARTER_DATES[i]);
+
+          return (
+            <div
+              key={q.label}
+              className={`rounded-xl border p-4 ${
+                q.isPast
+                  ? "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                  : i === 1
+                  ? "border-blue-200 bg-blue-50 ring-2 ring-blue-200 dark:border-blue-700 dark:bg-blue-950 dark:ring-blue-800"
+                  : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{q.label}</span>
+                {q.isPast && (
+                  <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-400">Past</span>
+                )}
+                {!q.isPast && i === 1 && (
+                  <span className="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-800 dark:text-blue-200">Next</span>
+                )}
+              </div>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+                {fmt(results.proportional[i])}
+              </p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Income: {fmt(quarterIncomes[i])}
+              </p>
+              <div className="mt-3 border-t border-gray-200 dark:border-gray-700 pt-2 space-y-2">
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Due: {q.dueDate}</p>
+                <div className="flex flex-col gap-1.5">
+                  <a
+                    href="https://www.irs.gov/payments"
+                    target="_blank"
+                    rel="noopener"
+                    className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                  >
+                    Pay IRS Now
+                  </a>
+                  <a
+                    href={calLink}
+                    target="_blank"
+                    rel="noopener"
+                    className="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Add to Calendar
+                  </a>
+                </div>
+              </div>
             </div>
-            <p className="mt-2 text-2xl font-bold text-gray-900 tabular-nums">
-              {fmt(results.proportional[i])}
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
-              Income: {fmt(quarterIncomes[i])}
-            </p>
-            <div className="mt-3 border-t border-gray-200 pt-2">
-              <p className="text-xs font-medium text-gray-600">Due: {q.dueDate}</p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
-        <h3 className="text-sm font-semibold text-amber-800">Avoid the underpayment penalty</h3>
-        <p className="mt-1 text-sm text-amber-700">
+      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+        <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Avoid the underpayment penalty</h3>
+        <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
           The IRS charges a penalty if you owe more than $1,000 at tax time and didn&apos;t pay at least
           90% of this year&apos;s tax or 100% of last year&apos;s tax through quarterly payments.
           When in doubt, pay a little more each quarter -- you&apos;ll get the overpayment back as a refund.
@@ -161,7 +233,7 @@ export default function QuarterlyTaxCalculator() {
         <p>There are two safe harbor rules that protect you from penalties: pay at least 90% of your current year tax liability, or pay 100% of last year tax liability (110% if your AGI was over $150,000). Meeting either threshold avoids the underpayment penalty even if you end up owing at tax time.</p>
 
         <h2>How to Pay Quarterly Taxes</h2>
-        <p>The easiest way to pay is through IRS Direct Pay at irs.gov/payments. Select "Estimated Tax" as the payment type and the correct tax year and quarter. You can also pay by mail using Form 1040-ES vouchers, or set up automatic payments through EFTPS (Electronic Federal Tax Payment System). Keep confirmation numbers for all payments as proof.</p>
+        <p>The easiest way to pay is through IRS Direct Pay at irs.gov/payments. Select &quot;Estimated Tax&quot; as the payment type and the correct tax year and quarter. You can also pay by mail using Form 1040-ES vouchers, or set up automatic payments through EFTPS (Electronic Federal Tax Payment System). Keep confirmation numbers for all payments as proof.</p>
       </SEOContent>
 
       <FAQ items={[

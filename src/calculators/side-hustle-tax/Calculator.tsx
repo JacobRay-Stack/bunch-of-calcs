@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
@@ -16,12 +17,14 @@ import {
   formatPercent,
 } from "@/lib/tax";
 import { calculateStateTax } from "@/lib/state-taxes";
+import { buildCalculatorLink } from "@/lib/calculator-links";
 
 export default function SideHustleTaxCalculator() {
   const [w2Income, setW2Income] = useState(55000);
   const [sideIncome, setSideIncome] = useState(15000);
   const [sideExpenses, setSideExpenses] = useState(2000);
   const [stateAbbr, setStateAbbr] = useState("NONE");
+  const [payFrequency, setPayFrequency] = useState(24); // biweekly = 24 paychecks
 
   const results = useMemo(() => {
     // Without side hustle
@@ -45,6 +48,25 @@ export default function SideHustleTaxCalculator() {
     const marginalBracket = getMarginalBracket(combinedTaxable);
     const quarterlyPayment = totalAdditionalTax / 4;
 
+    // W-4 adjustment: extra per paycheck to skip quarterly payments
+    const extraWithholding = payFrequency > 0 ? totalAdditionalTax / payFrequency : 0;
+
+    // "Is it worth it?" threshold: minimum gross side income to net $1,000/month ($12,000/yr)
+    let worthItThreshold = 12000;
+    for (let testIncome = 12000; testIncome <= 200000; testIncome += 500) {
+      const testNet = testIncome - sideExpenses;
+      const testSE = calculateSETax(testNet, w2Income);
+      const testCombinedTaxable = Math.max(0, w2Income + testNet - testSE.seDeduction - STANDARD_DEDUCTION_SINGLE);
+      const testCombinedFed = calculateFederalTax(testCombinedTaxable);
+      const testCombinedState = calculateStateTax(testCombinedTaxable, stateAbbr);
+      const testAdditionalTax = testSE.totalSeTax + (testCombinedFed - w2FedTax) + (testCombinedState - w2StateTax);
+      const testTakeHome = testNet - testAdditionalTax;
+      if (testTakeHome >= 12000) {
+        worthItThreshold = testIncome;
+        break;
+      }
+    }
+
     return {
       w2FedTax,
       netSide,
@@ -57,8 +79,10 @@ export default function SideHustleTaxCalculator() {
       marginalBracket,
       quarterlyPayment,
       combinedTaxable,
+      extraWithholding,
+      worthItThreshold,
     };
-  }, [w2Income, sideIncome, sideExpenses, stateAbbr]);
+  }, [w2Income, sideIncome, sideExpenses, stateAbbr, payFrequency]);
 
   const fmt = formatCurrency;
   const pct = formatPercent;
@@ -128,37 +152,76 @@ export default function SideHustleTaxCalculator() {
       </div>
 
       {/* Where the tax comes from */}
-      <div className="mt-8 rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700">Tax on Your Side Hustle Income</h3>
+      <div className="mt-8 rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700">
+        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tax on Your Side Hustle Income</h3>
         </div>
-        <div className="divide-y divide-gray-100">
-          <div className="flex justify-between px-4 py-3 text-sm text-gray-700">
+        <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <div className="flex justify-between px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
             <span>Net Side Income</span>
             <span className="tabular-nums font-medium">{fmt(results.netSide)}</span>
           </div>
-          <div className="flex justify-between px-4 py-3 text-sm text-gray-700">
+          <div className="flex justify-between px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
             <span>Self-Employment Tax (15.3%)</span>
-            <span className="tabular-nums font-medium text-red-600">{fmt(results.seTax)}</span>
+            <span className="tabular-nums font-medium text-red-600 dark:text-red-400">{fmt(results.seTax)}</span>
           </div>
-          <div className="flex justify-between px-4 py-3 text-sm text-gray-700">
+          <div className="flex justify-between px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
             <span>Additional Federal Income Tax</span>
-            <span className="tabular-nums font-medium text-red-600">{fmt(results.additionalFedTax)}</span>
+            <span className="tabular-nums font-medium text-red-600 dark:text-red-400">{fmt(results.additionalFedTax)}</span>
           </div>
-          <div className="flex justify-between px-4 py-3 text-sm font-bold text-gray-900 bg-gray-50">
+          <div className="flex justify-between px-4 py-3 text-sm font-bold text-gray-900 bg-gray-50 dark:text-gray-100 dark:bg-gray-800">
             <span>Total Additional Tax</span>
-            <span className="tabular-nums text-red-600">{fmt(results.totalAdditionalTax)}</span>
+            <span className="tabular-nums text-red-600 dark:text-red-400">{fmt(results.totalAdditionalTax)}</span>
           </div>
-          <div className="flex justify-between px-4 py-3 text-sm font-bold text-green-700 bg-green-50">
+          <div className="flex justify-between px-4 py-3 text-sm font-bold text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950">
             <span>What You Actually Keep</span>
             <span className="tabular-nums">{fmt(results.sideHustleTakeHome)}</span>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <h3 className="text-sm font-semibold text-blue-800">Why the tax feels high</h3>
-        <p className="mt-1 text-sm text-blue-700">
+      {/* W-4 adjustment */}
+      <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+        <h3 className="text-sm font-semibold text-green-800 dark:text-green-300">Skip quarterly payments with W-4 adjustment</h3>
+        <div className="mt-2 flex items-center gap-3">
+          <select
+            value={payFrequency}
+            onChange={(e) => setPayFrequency(Number(e.target.value))}
+            className="rounded-lg border border-green-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-green-500 focus:outline-none dark:border-green-700 dark:bg-gray-800 dark:text-gray-100"
+          >
+            <option value={52}>Weekly (52 paychecks)</option>
+            <option value={26}>Biweekly (26 paychecks)</option>
+            <option value={24}>Semi-monthly (24 paychecks)</option>
+            <option value={12}>Monthly (12 paychecks)</option>
+          </select>
+        </div>
+        <p className="mt-2 text-sm text-green-700 dark:text-green-400">
+          Add <strong className="text-green-900 dark:text-green-200">{fmt(results.extraWithholding)}</strong> extra withholding per paycheck on your W-4 to cover your side hustle tax through your day job. No quarterly payments needed.
+        </p>
+      </div>
+
+      {/* Worth-it threshold */}
+      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+        <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Is it worth it?</h3>
+        <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+          To net <strong>$1,000/month</strong> ($12,000/year) from your side hustle after taxes, you need to earn at least{" "}
+          <strong className="text-amber-900 dark:text-amber-200">{fmt(results.worthItThreshold)}/year</strong> gross.
+        </p>
+      </div>
+
+      {/* Cross-link to deductions */}
+      <div className="mt-6 text-center">
+        <Link
+          href={buildCalculatorLink("tax-deductions", { income: sideIncome })}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+        >
+          Reduce your tax with deductions &rarr;
+        </Link>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Why the tax feels high</h3>
+        <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
           Side hustle income sits on top of your W2 salary, so it&apos;s taxed at your marginal rate
           ({pct(results.marginalBracket)}), not your average rate. Plus you pay the full 15.3% SE
           tax since there&apos;s no employer to cover half. Deducting business expenses is the best

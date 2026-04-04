@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
@@ -22,9 +23,23 @@ const CATEGORIES = [
 
 type CategoryKey = (typeof CATEGORIES)[number]["key"];
 
+const MISSING_DEDUCTIONS = [
+  { label: "Professional memberships", estimate: 200 },
+  { label: "Bank & merchant fees", estimate: 150 },
+  { label: "Domain renewals", estimate: 100 },
+  { label: "Stock photo subscriptions", estimate: 200 },
+  { label: "Client gifts (under $25 each)", estimate: 150 },
+  { label: "Continuing education", estimate: 500 },
+  { label: "Professional liability insurance", estimate: 600 },
+];
+
 export default function TaxDeductionCalculator() {
+  const searchParams = useSearchParams();
   const [grossIncome, setGrossIncome] = useState(80000);
   const [taxRate, setTaxRate] = useState(30);
+  const [businessMiles, setBusinessMiles] = useState(0);
+  const [officeSqFt, setOfficeSqFt] = useState(0);
+  const [checkedDeductions, setCheckedDeductions] = useState<Record<number, boolean>>({});
   const [expenses, setExpenses] = useState<Record<CategoryKey, number>>({
     homeOffice: 1500,
     equipment: 2000,
@@ -37,6 +52,37 @@ export default function TaxDeductionCalculator() {
     professional: 500,
     other: 400,
   });
+
+  useEffect(() => {
+    const inc = searchParams.get("income");
+    if (inc) setGrossIncome(Number(inc));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync mileage sub-calc into travel
+  useEffect(() => {
+    if (businessMiles > 0) {
+      const mileageDeduction = businessMiles * 0.7;
+      setExpenses((prev) => ({ ...prev, travel: Math.round(mileageDeduction) }));
+    }
+  }, [businessMiles]);
+
+  // Sync home office sub-calc
+  useEffect(() => {
+    if (officeSqFt > 0) {
+      const homeOfficeDeduction = Math.min(officeSqFt * 5, 1500);
+      setExpenses((prev) => ({ ...prev, homeOffice: homeOfficeDeduction }));
+    }
+  }, [officeSqFt]);
+
+  // Sync checked missing deductions into "other"
+  useEffect(() => {
+    const checkedTotal = MISSING_DEDUCTIONS.reduce(
+      (sum, d, i) => sum + (checkedDeductions[i] ? d.estimate : 0),
+      0
+    );
+    const baseOther = 400; // base "other" value
+    setExpenses((prev) => ({ ...prev, other: baseOther + checkedTotal }));
+  }, [checkedDeductions]);
 
   const results = useMemo(() => {
     const totalDeductions = Object.values(expenses).reduce((sum, v) => sum + v, 0);
@@ -56,7 +102,14 @@ export default function TaxDeductionCalculator() {
   const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
   const updateExpense = (key: CategoryKey, value: number) => {
+    // Clear sub-calc state when user manually edits
+    if (key === "travel") setBusinessMiles(0);
+    if (key === "homeOffice") setOfficeSqFt(0);
     setExpenses((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleDeduction = (index: number) => {
+    setCheckedDeductions((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
   return (
@@ -86,7 +139,45 @@ export default function TaxDeductionCalculator() {
         />
       </div>
 
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Deductible Expenses</h3>
+      {/* Quick sub-calculators */}
+      <div className="grid gap-4 sm:grid-cols-2 mb-6">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+          <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Mileage Calculator</h3>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">$0.70/mile (2026 IRS rate)</p>
+          <SliderInput
+            label="Business Miles Driven"
+            value={businessMiles}
+            onChange={setBusinessMiles}
+            min={0}
+            max={50000}
+            step={100}
+          />
+          {businessMiles > 0 && (
+            <p className="mt-2 text-sm font-medium text-blue-900 dark:text-blue-200">
+              Deduction: {fmt(businessMiles * 0.7)}
+            </p>
+          )}
+        </div>
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+          <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Home Office Calculator</h3>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">$5/sq ft, max 300 sq ft ($1,500)</p>
+          <SliderInput
+            label="Office Square Footage"
+            value={officeSqFt}
+            onChange={setOfficeSqFt}
+            min={0}
+            max={300}
+            step={10}
+          />
+          {officeSqFt > 0 && (
+            <p className="mt-2 text-sm font-medium text-blue-900 dark:text-blue-200">
+              Deduction: {fmt(Math.min(officeSqFt * 5, 1500))}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Deductible Expenses</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         {CATEGORIES.map((cat) => (
           <SliderInput
@@ -123,13 +214,13 @@ export default function TaxDeductionCalculator() {
 
       {/* Visual breakdown */}
       <div className="mt-8 space-y-2">
-        <h3 className="text-sm font-semibold text-gray-700">Deduction Breakdown</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Deduction Breakdown</h3>
         {results.sorted
           .filter((c) => c.value > 0)
           .map((cat) => (
             <div key={cat.key} className="flex items-center gap-3">
-              <div className="w-32 truncate text-sm text-gray-600">{cat.label}</div>
-              <div className="flex-1 h-4 rounded-full bg-gray-100 overflow-hidden">
+              <div className="w-32 truncate text-sm text-gray-600 dark:text-gray-400">{cat.label}</div>
+              <div className="flex-1 h-4 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-blue-500 transition-all duration-300"
                   style={{
@@ -137,14 +228,34 @@ export default function TaxDeductionCalculator() {
                   }}
                 />
               </div>
-              <div className="w-20 text-right text-sm tabular-nums font-medium text-gray-900">
+              <div className="w-20 text-right text-sm tabular-nums font-medium text-gray-900 dark:text-gray-100">
                 {fmt(cat.value)}
               </div>
-              <div className="w-20 text-right text-xs tabular-nums text-green-600">
+              <div className="w-20 text-right text-xs tabular-nums text-green-600 dark:text-green-400">
                 saves {fmt(cat.saving)}
               </div>
             </div>
           ))}
+      </div>
+
+      {/* Missing deductions checklist */}
+      <div className="mt-8 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+        <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">Commonly Missed Deductions</h3>
+        <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">Check any that apply -- estimated amounts will be added to your &quot;Other&quot; category.</p>
+        <div className="space-y-2">
+          {MISSING_DEDUCTIONS.map((d, i) => (
+            <label key={d.label} className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!checkedDeductions[i]}
+                onChange={() => toggleDeduction(i)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{d.label}</span>
+              <span className="text-xs tabular-nums text-gray-500 dark:text-gray-400">~{fmt(d.estimate)}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <SEOContent>

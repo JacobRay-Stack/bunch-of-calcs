@@ -1,15 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
 import HeroResult from "@/components/HeroResult";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import { buildCalculatorLink } from "@/lib/calculator-links";
 
 const WORK_DAYS_PER_YEAR = 260;
 const HOURS_PER_DAY = 8;
+
+const INDUSTRY_BENCHMARKS = [
+  { label: "Web Development", min: 50, max: 95 },
+  { label: "Design", min: 45, max: 85 },
+  { label: "Copywriting", min: 40, max: 75 },
+  { label: "Marketing", min: 50, max: 90 },
+] as const;
 
 const FAQ_ITEMS = [
   { question: "How do I calculate my freelance hourly rate?", answer: "Start with how much you want to earn annually, add your business expenses (software, insurance, equipment), then gross it up for taxes. Divide that total by the number of billable hours you can realistically work in a year -- accounting for vacation, sick days, and non-billable time like admin work. The result is your minimum hourly rate." },
@@ -25,6 +34,7 @@ export default function FreelanceRateCalculator() {
   const [taxRate, setTaxRate] = useState(25);
   const [vacationDays, setVacationDays] = useState(15);
   const [sickDays, setSickDays] = useState(5);
+  const [selectedIndustry, setSelectedIndustry] = useState(0);
 
   const workingDays = WORK_DAYS_PER_YEAR - vacationDays - sickDays;
   const billableHours = workingDays * HOURS_PER_DAY;
@@ -33,6 +43,20 @@ export default function FreelanceRateCalculator() {
   const recommendedRate = hourlyRate * 1.2;
   const dayRate = recommendedRate * HOURS_PER_DAY;
   const projectRate = recommendedRate * 40;
+
+  const benchmark = INDUSTRY_BENCHMARKS[selectedIndustry];
+  const benchmarkComparison =
+    recommendedRate < benchmark.min
+      ? "below"
+      : recommendedRate > benchmark.max
+      ? "above"
+      : "within";
+
+  // Employment replacement cost
+  const healthInsuranceCost = 6000;
+  const retirementMatch = salary * 0.04; // 4% default
+  const ptoCost = vacationDays * (recommendedRate * HOURS_PER_DAY);
+  const hiddenEmploymentCosts = healthInsuranceCost + retirementMatch + ptoCost;
 
   const fmt = (n: number) =>
     "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -55,6 +79,67 @@ export default function FreelanceRateCalculator() {
         <ResultCard label="Weekly Project Rate" value={fmt(projectRate)} subtext="Based on a 40-hour week" />
       </div>
 
+      {/* Industry benchmarks */}
+      <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Industry Rate Comparison</h3>
+        <div className="mt-2">
+          <select
+            value={selectedIndustry}
+            onChange={(e) => setSelectedIndustry(Number(e.target.value))}
+            className="rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-blue-700 dark:bg-gray-800 dark:text-gray-100"
+          >
+            {INDUSTRY_BENCHMARKS.map((b, i) => (
+              <option key={b.label} value={i}>{b.label}</option>
+            ))}
+          </select>
+        </div>
+        <p className="mt-3 text-sm text-blue-700 dark:text-blue-400">
+          {benchmark.label} rates typically range from <strong>{fmt(benchmark.min)}</strong> to <strong>{fmt(benchmark.max)}/hr</strong>.
+          Your recommended rate of {fmt(recommendedRate)}/hr is{" "}
+          <strong className={benchmarkComparison === "below" ? "text-red-600 dark:text-red-400" : benchmarkComparison === "above" ? "text-green-600 dark:text-green-400" : ""}>
+            {benchmarkComparison} the average range
+          </strong>.
+          {benchmarkComparison === "below" && " Consider raising your salary target or reducing time off to bring your rate in line."}
+        </p>
+      </div>
+
+      {/* Employment replacement cost */}
+      <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Hidden Employment Costs You&apos;re Replacing</h3>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 mb-3">Benefits an employer would cover that you now pay for yourself.</p>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Health Insurance (est.)</span>
+            <span className="tabular-nums font-medium">{fmt(healthInsuranceCost)}/yr</span>
+          </div>
+          <div className="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Retirement Match (~4%)</span>
+            <span className="tabular-nums font-medium">{fmt(retirementMatch)}/yr</span>
+          </div>
+          <div className="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>PTO Value ({vacationDays} days)</span>
+            <span className="tabular-nums font-medium">{fmt(ptoCost)}/yr</span>
+          </div>
+          <div className="flex justify-between font-semibold text-gray-900 dark:text-gray-100 border-t border-gray-200 dark:border-gray-600 pt-2">
+            <span>Total Hidden Costs</span>
+            <span className="tabular-nums">{fmt(hiddenEmploymentCosts)}/yr</span>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+          Your rate already accounts for taxes and expenses, but these hidden costs show why freelance rates need to be higher than W2 hourly equivalents.
+        </p>
+      </div>
+
+      {/* Cross-link to Project Price */}
+      <div className="mt-6 text-center">
+        <Link
+          href={buildCalculatorLink("project-price", { rate: Math.round(recommendedRate) })}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+        >
+          Price a project with this rate &rarr;
+        </Link>
+      </div>
+
       <div className="mt-6 rounded-lg bg-gray-50 border border-gray-200 p-4 dark:bg-gray-800 dark:border-gray-700">
         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">How this works</h3>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -73,7 +158,7 @@ export default function FreelanceRateCalculator() {
           <li><strong>Self-employment tax</strong> adds 15.3% on top of your income tax. As an employee, your company paid half. Now you pay both halves.</li>
           <li><strong>Benefits you lose</strong> include health insurance ($6,000-$15,000/year), retirement matching, paid time off, and equipment.</li>
           <li><strong>Non-billable time</strong> is real. Marketing, invoicing, bookkeeping, client calls, and project management can eat 30-40% of your working hours.</li>
-          <li><strong>Gaps between projects</strong> mean you won't bill every week of the year. Plan for 40-46 working weeks, not 52.</li>
+          <li><strong>Gaps between projects</strong> mean you won&apos;t bill every week of the year. Plan for 40-46 working weeks, not 52.</li>
         </ul>
 
         <h2>Hourly vs Project-Based Pricing</h2>

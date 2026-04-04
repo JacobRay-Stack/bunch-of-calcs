@@ -7,10 +7,24 @@ import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
 
+const INDUSTRY_BENCHMARKS = [
+  { label: "Freelance Services", min: 50, max: 80 },
+  { label: "SaaS", min: 70, max: 90 },
+  { label: "E-commerce", min: 30, max: 50 },
+  { label: "Consulting", min: 40, max: 70 },
+] as const;
+
 export default function ProfitMarginCalculator() {
   const [revenue, setRevenue] = useState(10000);
   const [cogs, setCogs] = useState(4000);
   const [operatingExpenses, setOperatingExpenses] = useState(2000);
+  const [selectedIndustry, setSelectedIndustry] = useState(0);
+  const [viewMode, setViewMode] = useState<"monthly" | "annual">("monthly");
+
+  const displayMultiplier = viewMode === "annual" ? 12 : 1;
+  const displayRevenue = revenue * displayMultiplier;
+  const displayCogs = cogs * displayMultiplier;
+  const displayExpenses = operatingExpenses * displayMultiplier;
 
   const results = useMemo(() => {
     const grossProfit = revenue - cogs;
@@ -19,15 +33,31 @@ export default function ProfitMarginCalculator() {
     const netMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
     const markup = cogs > 0 ? (grossProfit / cogs) * 100 : 0;
 
-    return { grossProfit, netProfit, grossMargin, netMargin, markup };
+    // What-if scenarios
+    const raise10Revenue = revenue * 1.1;
+    const raise10NetProfit = raise10Revenue - cogs - operatingExpenses;
+    const raise10Margin = raise10Revenue > 0 ? (raise10NetProfit / raise10Revenue) * 100 : 0;
+
+    const cut10Costs = cogs * 0.9;
+    const cut10NetProfit = revenue - cut10Costs - operatingExpenses;
+    const cut10Margin = revenue > 0 ? (cut10NetProfit / revenue) * 100 : 0;
+
+    return { grossProfit, netProfit, grossMargin, netMargin, markup, raise10Margin, raise10NetProfit, cut10Margin, cut10NetProfit };
   }, [revenue, cogs, operatingExpenses]);
 
   const fmt = (n: number) =>
     "$" + Math.round(n).toLocaleString("en-US");
   const pct = (n: number) => n.toFixed(1) + "%";
 
-  // Visual bar width
   const barPct = (n: number) => Math.max(0, Math.min(100, n));
+
+  const benchmark = INDUSTRY_BENCHMARKS[selectedIndustry];
+  const marginComparison =
+    results.netMargin < benchmark.min
+      ? "below"
+      : results.netMargin > benchmark.max
+      ? "above"
+      : "within";
 
   return (
     <CalculatorLayout
@@ -36,9 +66,35 @@ export default function ProfitMarginCalculator() {
       category="profit"
       description="Calculate gross margin, net margin, and markup from your revenue and costs. See exactly where your money goes."
     >
+      {/* View toggle */}
+      <div className="mb-6 flex justify-center">
+        <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <button
+            onClick={() => setViewMode("monthly")}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              viewMode === "monthly"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setViewMode("annual")}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              viewMode === "annual"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
+            }`}
+          >
+            Annual
+          </button>
+        </div>
+      </div>
+
       <div className="grid gap-6 sm:grid-cols-3">
         <SliderInput
-          label="Revenue"
+          label={`Revenue (${viewMode})`}
           value={revenue}
           onChange={setRevenue}
           type="currency"
@@ -47,7 +103,7 @@ export default function ProfitMarginCalculator() {
           helpText="Total income or sales"
         />
         <SliderInput
-          label="Cost of Goods/Services"
+          label={`Cost of Goods/Services (${viewMode})`}
           value={cogs}
           onChange={setCogs}
           type="currency"
@@ -56,7 +112,7 @@ export default function ProfitMarginCalculator() {
           helpText="Direct costs to deliver"
         />
         <SliderInput
-          label="Operating Expenses"
+          label={`Operating Expenses (${viewMode})`}
           value={operatingExpenses}
           onChange={setOperatingExpenses}
           type="currency"
@@ -71,13 +127,13 @@ export default function ProfitMarginCalculator() {
           label="Gross Margin"
           value={pct(results.grossMargin)}
           highlight
-          subtext={`${fmt(results.grossProfit)} profit`}
+          subtext={`${fmt(results.grossProfit * displayMultiplier)} profit${viewMode === "annual" ? "/yr" : "/mo"}`}
         />
         <ResultCard
           label="Net Margin"
           value={pct(results.netMargin)}
           highlight={results.netMargin > 0}
-          subtext={`${fmt(results.netProfit)} ${results.netProfit >= 0 ? "profit" : "loss"}`}
+          subtext={`${fmt(results.netProfit * displayMultiplier)} ${results.netProfit >= 0 ? "profit" : "loss"}${viewMode === "annual" ? "/yr" : "/mo"}`}
         />
         <ResultCard
           label="Markup"
@@ -86,16 +142,63 @@ export default function ProfitMarginCalculator() {
         />
       </div>
 
+      {/* Industry benchmarks */}
+      <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Industry Comparison</h3>
+        <div className="mt-2">
+          <select
+            value={selectedIndustry}
+            onChange={(e) => setSelectedIndustry(Number(e.target.value))}
+            className="rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-blue-700 dark:bg-gray-800 dark:text-gray-100"
+          >
+            {INDUSTRY_BENCHMARKS.map((b, i) => (
+              <option key={b.label} value={i}>{b.label}</option>
+            ))}
+          </select>
+        </div>
+        <p className="mt-3 text-sm text-blue-700 dark:text-blue-400">
+          {benchmark.label} typically has {benchmark.min}-{benchmark.max}% net margins. Your {pct(results.netMargin)} is{" "}
+          <strong className={marginComparison === "below" ? "text-red-600 dark:text-red-400" : marginComparison === "above" ? "text-green-600 dark:text-green-400" : ""}>
+            {marginComparison} the typical range
+          </strong>.
+          {marginComparison === "below" && " Consider raising prices or cutting costs."}
+        </p>
+      </div>
+
+      {/* What-if scenarios */}
+      <div className="mt-6 rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700">
+        <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">What If?</h3>
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-700">
+          <div className="p-4 text-center bg-blue-50 dark:bg-blue-950">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Current</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{pct(results.netMargin)}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{fmt(results.netProfit * displayMultiplier)}</p>
+          </div>
+          <div className="p-4 text-center">
+            <p className="text-xs font-medium text-green-600 dark:text-green-400">Raise Prices 10%</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{pct(results.raise10Margin)}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{fmt(results.raise10NetProfit * displayMultiplier)}</p>
+          </div>
+          <div className="p-4 text-center">
+            <p className="text-xs font-medium text-green-600 dark:text-green-400">Cut Costs 10%</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{pct(results.cut10Margin)}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{fmt(results.cut10NetProfit * displayMultiplier)}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Visual breakdown */}
       <div className="mt-8 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-700">Revenue Breakdown</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Revenue Breakdown</h3>
         <div className="space-y-3">
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Cost of Goods/Services</span>
-              <span className="font-medium text-gray-900">{fmt(cogs)}</span>
+              <span className="text-gray-600 dark:text-gray-400">Cost of Goods/Services</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">{fmt(displayCogs)}</span>
             </div>
-            <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
               <div
                 className="h-full rounded-full bg-red-400 transition-all duration-300"
                 style={{ width: `${barPct(revenue > 0 ? (cogs / revenue) * 100 : 0)}%` }}
@@ -104,10 +207,10 @@ export default function ProfitMarginCalculator() {
           </div>
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Operating Expenses</span>
-              <span className="font-medium text-gray-900">{fmt(operatingExpenses)}</span>
+              <span className="text-gray-600 dark:text-gray-400">Operating Expenses</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">{fmt(displayExpenses)}</span>
             </div>
-            <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
               <div
                 className="h-full rounded-full bg-amber-400 transition-all duration-300"
                 style={{ width: `${barPct(revenue > 0 ? (operatingExpenses / revenue) * 100 : 0)}%` }}
@@ -116,12 +219,12 @@ export default function ProfitMarginCalculator() {
           </div>
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Net Profit</span>
-              <span className={`font-medium ${results.netProfit >= 0 ? "text-green-700" : "text-red-700"}`}>
-                {fmt(results.netProfit)}
+              <span className="text-gray-600 dark:text-gray-400">Net Profit</span>
+              <span className={`font-medium ${results.netProfit >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                {fmt(results.netProfit * displayMultiplier)}
               </span>
             </div>
-            <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${results.netProfit >= 0 ? "bg-green-500" : "bg-red-500"}`}
                 style={{ width: `${barPct(revenue > 0 ? (Math.abs(results.netProfit) / revenue) * 100 : 0)}%` }}
@@ -131,9 +234,9 @@ export default function ProfitMarginCalculator() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <h3 className="text-sm font-semibold text-gray-700">Margin vs Markup</h3>
-        <p className="mt-1 text-sm text-gray-600">
+      <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Margin vs Markup</h3>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
           <strong>Margin</strong> is profit as a percentage of revenue (what you keep from each dollar earned).{" "}
           <strong>Markup</strong> is profit as a percentage of cost (how much you add on top of your costs).
           A 50% markup = 33.3% margin. They&apos;re related but not the same.

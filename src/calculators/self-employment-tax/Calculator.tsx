@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
 import HeroResult from "@/components/HeroResult";
@@ -33,21 +34,42 @@ export default function SelfEmploymentTaxCalculator() {
   const [deductions, setDeductions] = useState(5000);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
   const [stateAbbr, setStateAbbr] = useState("NONE");
+  const [retirementPct, setRetirementPct] = useState(0);
 
   const results = useMemo(() => {
     const netIncome = grossIncome - deductions;
+
+    // Calculate retirement contribution (SEP-IRA: up to 25% of net, max $69K)
+    const maxRetirement = Math.min(netIncome * 0.25, 69000);
+    const retirementContribution = Math.min(netIncome * (retirementPct / 100), maxRetirement);
+
+    // Base calculation (without retirement)
     const se = calculateSETax(netIncome);
     const standardDeduction = getStandardDeduction(filingStatus);
     const taxableIncome = Math.max(0, netIncome - se.seDeduction - standardDeduction);
     const federalTax = calculateFederalTax(taxableIncome, filingStatus);
     const stateTax = calculateStateTax(taxableIncome, stateAbbr);
     const totalTax = se.totalSeTax + federalTax + stateTax;
-    const quarterlyPayment = totalTax / 4;
-    const effectiveRate = netIncome > 0 ? (totalTax / netIncome) * 100 : 0;
-    const takeHome = netIncome - totalTax;
 
-    return { netIncome, ...se, federalTax, stateTax, totalTax, quarterlyPayment, effectiveRate, takeHome, taxableIncome };
-  }, [grossIncome, deductions, filingStatus, stateAbbr]);
+    // With retirement contribution
+    const taxableWithRetirement = Math.max(0, netIncome - se.seDeduction - standardDeduction - retirementContribution);
+    const federalTaxWithRetirement = calculateFederalTax(taxableWithRetirement, filingStatus);
+    const stateTaxWithRetirement = calculateStateTax(taxableWithRetirement, stateAbbr);
+    const totalTaxWithRetirement = se.totalSeTax + federalTaxWithRetirement + stateTaxWithRetirement;
+    const retirementTaxSavings = totalTax - totalTaxWithRetirement;
+
+    const effectiveTotalTax = retirementContribution > 0 ? totalTaxWithRetirement : totalTax;
+    const quarterlyPayment = effectiveTotalTax / 4;
+    const effectiveRate = netIncome > 0 ? (effectiveTotalTax / netIncome) * 100 : 0;
+    const takeHome = netIncome - effectiveTotalTax - retirementContribution;
+
+    return {
+      netIncome, ...se, federalTax, stateTax, totalTax,
+      quarterlyPayment, effectiveRate, takeHome, taxableIncome,
+      retirementContribution, retirementTaxSavings, totalTaxWithRetirement,
+      effectiveTotalTax, maxRetirement,
+    };
+  }, [grossIncome, deductions, filingStatus, stateAbbr, retirementPct]);
 
   const fmt = formatCurrency;
   const pct = formatPercent;
@@ -69,12 +91,41 @@ export default function SelfEmploymentTaxCalculator() {
         </div>
       </div>
 
-      <HeroResult label="Quarterly Payment Due" value={fmt(results.quarterlyPayment)} subtext={`Pay this amount 4x per year to avoid IRS penalties. Total annual tax: ${fmt(results.totalTax)}`} />
+      <HeroResult label="Quarterly Payment Due" value={fmt(results.quarterlyPayment)} subtext={`Pay this amount 4x per year to avoid IRS penalties. Total annual tax: ${fmt(results.effectiveTotalTax)}`} />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <ResultCard label="Total Annual Tax" value={fmt(results.totalTax)} subtext={`Effective rate: ${pct(results.effectiveRate)}`} />
+        <ResultCard label="Total Annual Tax" value={fmt(results.effectiveTotalTax)} subtext={`Effective rate: ${pct(results.effectiveRate)}`} />
         <ResultCard label="Annual Take-Home" value={fmt(results.takeHome)} subtext="After all taxes" />
         <ResultCard label="Monthly Take-Home" value={fmt(results.takeHome / 12)} subtext="Average per month" />
+      </div>
+
+      {/* Retirement savings scenario */}
+      <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+        <h3 className="text-sm font-semibold text-green-800 dark:text-green-300">
+          SEP-IRA Retirement Savings
+        </h3>
+        <p className="text-xs text-green-600 dark:text-green-400 mb-3">
+          Max contribution: {fmt(results.maxRetirement)}/yr (25% of net income, cap $69K)
+        </p>
+        <SliderInput
+          label="Retirement Contribution"
+          value={retirementPct}
+          onChange={setRetirementPct}
+          type="percentage"
+          min={0}
+          max={25}
+          step={1}
+          helpText="Percentage of net income to contribute"
+        />
+        {results.retirementContribution > 0 && (
+          <div className="mt-3 rounded-md bg-green-100 dark:bg-green-900 p-3">
+            <p className="text-sm text-green-800 dark:text-green-200">
+              Contributing <strong>{fmt(results.retirementContribution)}</strong>/yr saves you{" "}
+              <strong>{fmt(results.retirementTaxSavings)}</strong> in taxes.
+              Your effective tax rate drops from {pct(results.netIncome > 0 ? (results.totalTax / results.netIncome) * 100 : 0)} to {pct(results.effectiveRate)}.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Tax breakdown */}
@@ -90,6 +141,7 @@ export default function SelfEmploymentTaxCalculator() {
             ...(results.additionalMedicare > 0 ? [{ label: "Additional Medicare (0.9%)", value: fmt(results.additionalMedicare) }] : []),
             { label: "Total SE Tax (15.3%)", value: fmt(results.totalSeTax), bold: true },
             { label: "SE Tax Deduction (50%)", value: `−${fmt(results.seDeduction)}` },
+            ...(results.retirementContribution > 0 ? [{ label: "Retirement Deduction", value: `−${fmt(results.retirementContribution)}` }] : []),
             { label: "Federal Income Tax", value: fmt(results.federalTax) },
             ...(results.stateTax > 0 ? [{ label: "State Income Tax (est.)", value: fmt(results.stateTax) }] : []),
           ].map((row) => (
@@ -110,6 +162,16 @@ export default function SelfEmploymentTaxCalculator() {
           ))}
         </div>
         <p className="mt-2 text-xs text-blue-600 dark:text-blue-400">Each payment: {fmt(results.quarterlyPayment)}</p>
+      </div>
+
+      {/* Cross-link to quarterly tax */}
+      <div className="mt-6 text-center">
+        <Link
+          href="/quarterly-tax"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+        >
+          See your quarterly payment schedule &rarr;
+        </Link>
       </div>
 
       {/* Contextual commentary */}
