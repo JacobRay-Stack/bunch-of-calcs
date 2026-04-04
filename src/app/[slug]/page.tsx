@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import calculators, { getCalculatorBySlug } from "@/calculators";
-import { generateCalculatorMetadata } from "@/lib/seo";
+import { generateCalculatorMetadata, generateWebApplicationJsonLd } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -28,10 +28,17 @@ export default async function CalculatorPage({ params }: PageProps) {
   }
 
   const Component = calc.component;
+  const jsonLd = generateWebApplicationJsonLd(calc);
 
   return (
-    <Suspense>
-      <Component />
-    </Suspense>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Suspense>
+        <Component />
+      </Suspense>
+    </>
   );
 }

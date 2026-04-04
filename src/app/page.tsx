@@ -10,6 +10,13 @@ const categoryLabels: Record<string, string> = {
   planning: "Planning",
 };
 
+const homepageFaq = [
+  { question: "Are these calculators really free?", answer: "Yes, all 11 calculators are completely free with no signup required. We make money through ads, not subscriptions." },
+  { question: "How accurate are the tax calculators?", answer: "Our tax calculators use 2026 IRS tax brackets, self-employment tax rates, and standard deductions. They provide estimates -- consult a tax professional for exact filing numbers." },
+  { question: "Who are these calculators built for?", answer: "Freelancers, independent contractors, solopreneurs, and anyone with 1099 income. Whether you are just starting out or have been freelancing for years, these tools help you price your work and plan for taxes." },
+  { question: "Can I use these calculators for my business?", answer: "Absolutely. The profit margin, break-even, and project pricing calculators work for any small business or solo operation. The tax calculators are specific to US self-employment income." },
+];
+
 function groupByCategory() {
   const groups: Record<string, typeof calculators> = {};
   for (const calc of calculators) {
@@ -24,8 +31,26 @@ function groupByCategory() {
 export default function Home() {
   const grouped = groupByCategory();
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: homepageFaq.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-gray-100">
           Free Calculators for Freelancers
@@ -81,6 +106,38 @@ export default function Home() {
           </div>
         </div>
       ))}
+
+      {/* SEO content */}
+      <div className="mt-16 border-t border-gray-200 dark:border-gray-700 pt-10">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          Why Use Our Freelance Calculators?
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+          Freelancing comes with financial complexity that traditional employees never deal with. You pay both halves of employment taxes, buy your own health insurance, fund your own retirement, and price your own work with no salary benchmark to lean on. These calculators take the guesswork out of the math so you can make informed decisions about your rates, taxes, and profitability.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+          Every calculator is built specifically for freelancers, independent contractors, and solopreneurs. They use current 2026 tax rates, account for self-employment tax, and factor in the hidden costs that most generic calculators miss. No signups, no paywalls, no email capture -- just the numbers you need.
+        </p>
+      </div>
+
+      {/* Homepage FAQ */}
+      <div className="mt-10">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          Frequently Asked Questions
+        </h2>
+        <dl className="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
+          {homepageFaq.map((item, i) => (
+            <div key={i} className="py-4">
+              <dt className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {item.question}
+              </dt>
+              <dd className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                {item.answer}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </div>
   );
 }

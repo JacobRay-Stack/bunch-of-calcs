@@ -30,6 +30,18 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-white font-sans text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Bunch of Calcs",
+              url: "https://www.bunchofcalcs.com",
+              description: "Free online calculators built for freelancers and solopreneurs.",
+            }),
+          }}
+        />
         <ThemeProvider>
           <Header />
           <main className="flex-1">{children}</main>
