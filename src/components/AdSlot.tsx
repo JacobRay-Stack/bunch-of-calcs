@@ -5,12 +5,14 @@ interface AdSlotProps {
 }
 
 export default function AdSlot({ size = "inline" }: AdSlotProps) {
+  // Adsterra native banner auto-injects ads via the global script in <head>.
+  // This component provides spacing and structure for the page layout.
+  // If no ads render, the empty div collapses so there's no awkward blank space.
   return (
     <div
-      className={`w-full overflow-hidden rounded-lg ${
-        size === "sidebar" ? "min-h-64" : "min-h-16"
+      className={`w-full overflow-hidden ${
+        size === "sidebar" ? "min-h-0" : "min-h-0"
       }`}
-      id={`adsterra-${size}-${Math.random().toString(36).slice(2, 8)}`}
     />
   );
 }
