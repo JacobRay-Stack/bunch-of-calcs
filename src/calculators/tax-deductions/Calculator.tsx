@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
@@ -67,7 +67,7 @@ export default function TaxDeductionCalculator() {
       description="Enter your business expenses by category and see how much they save you in taxes. Every dollar you deduct reduces your taxable income."
     >
       <div className="grid gap-6 sm:grid-cols-2 mb-6">
-        <InputField
+        <SliderInput
           label="Gross Annual Income"
           value={grossIncome}
           onChange={setGrossIncome}
@@ -75,7 +75,7 @@ export default function TaxDeductionCalculator() {
           min={0}
           step={5000}
         />
-        <InputField
+        <SliderInput
           label="Estimated Tax Rate"
           value={taxRate}
           onChange={setTaxRate}
@@ -89,7 +89,7 @@ export default function TaxDeductionCalculator() {
       <h3 className="text-sm font-semibold text-gray-700 mb-4">Deductible Expenses</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         {CATEGORIES.map((cat) => (
-          <InputField
+          <SliderInput
             key={cat.key}
             label={cat.label}
             value={expenses[cat.key]}

@@ -25,7 +25,8 @@ export default function FAQ({ items }: FAQProps) {
             <dt>
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="flex w-full items-center justify-between text-left"
+                aria-expanded={openIndex === i}
+                className="flex w-full items-center justify-between text-left py-1"
               >
                 <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {item.question}
@@ -48,7 +49,7 @@ export default function FAQ({ items }: FAQProps) {
               </button>
             </dt>
             {openIndex === i && (
-              <dd className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+              <dd className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
                 {item.answer}
               </dd>
             )}

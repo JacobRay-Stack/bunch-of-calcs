@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
 
@@ -75,7 +75,7 @@ export default function SalaryConverter() {
       description="Instantly convert between hourly, daily, weekly, biweekly, monthly, and annual pay. Works both directions."
     >
       <div className="grid gap-6 sm:grid-cols-3">
-        <InputField
+        <SliderInput
           label="Pay Amount"
           value={amount}
           onChange={setAmount}
@@ -99,7 +99,7 @@ export default function SalaryConverter() {
             ))}
           </select>
         </div>
-        <InputField
+        <SliderInput
           label="Hours Per Week"
           value={hoursPerWeek}
           onChange={setHoursPerWeek}

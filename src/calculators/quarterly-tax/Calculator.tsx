@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
@@ -87,7 +87,7 @@ export default function QuarterlyTaxCalculator() {
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {QUARTERS.map((q, i) => (
-          <InputField
+          <SliderInput
             key={q.label}
             label={`${q.label} Income (${q.months})`}
             value={quarterIncomes[i]}
@@ -99,7 +99,7 @@ export default function QuarterlyTaxCalculator() {
         ))}
       </div>
       <div className="mt-4 max-w-sm">
-        <InputField
+        <SliderInput
           label="Annual Business Deductions"
           value={totalDeductions}
           onChange={setTotalDeductions}

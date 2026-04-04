@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
 
@@ -42,7 +42,7 @@ export default function InvoiceFeeCalculator() {
       description="Compare payment processor fees side by side. See exactly how much you keep from every invoice."
     >
       <div className="max-w-sm">
-        <InputField
+        <SliderInput
           label="Invoice Amount"
           value={invoiceAmount}
           onChange={setInvoiceAmount}

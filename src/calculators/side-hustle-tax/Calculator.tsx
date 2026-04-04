@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
@@ -96,7 +96,7 @@ export default function SideHustleTaxCalculator() {
       description="Have a W2 job and freelance on the side? See exactly how much extra tax your side income creates and what you actually keep."
     >
       <div className="grid gap-6 sm:grid-cols-3">
-        <InputField
+        <SliderInput
           label="W2 Salary"
           value={w2Income}
           onChange={setW2Income}
@@ -105,7 +105,7 @@ export default function SideHustleTaxCalculator() {
           step={5000}
           helpText="Your day job gross income"
         />
-        <InputField
+        <SliderInput
           label="Side Hustle Income"
           value={sideIncome}
           onChange={setSideIncome}
@@ -114,7 +114,7 @@ export default function SideHustleTaxCalculator() {
           step={1000}
           helpText="Total 1099 / freelance income"
         />
-        <InputField
+        <SliderInput
           label="Side Hustle Expenses"
           value={sideExpenses}
           onChange={setSideExpenses}

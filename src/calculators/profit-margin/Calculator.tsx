@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
@@ -37,7 +37,7 @@ export default function ProfitMarginCalculator() {
       description="Calculate gross margin, net margin, and markup from your revenue and costs. See exactly where your money goes."
     >
       <div className="grid gap-6 sm:grid-cols-3">
-        <InputField
+        <SliderInput
           label="Revenue"
           value={revenue}
           onChange={setRevenue}
@@ -46,7 +46,7 @@ export default function ProfitMarginCalculator() {
           step={500}
           helpText="Total income or sales"
         />
-        <InputField
+        <SliderInput
           label="Cost of Goods/Services"
           value={cogs}
           onChange={setCogs}
@@ -55,7 +55,7 @@ export default function ProfitMarginCalculator() {
           step={500}
           helpText="Direct costs to deliver"
         />
-        <InputField
+        <SliderInput
           label="Operating Expenses"
           value={operatingExpenses}
           onChange={setOperatingExpenses}

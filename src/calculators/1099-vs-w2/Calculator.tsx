@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
 
@@ -78,7 +78,7 @@ export default function ComparisonCalculator() {
       description="Compare what you actually take home as a freelancer (1099) versus an employee (W2) at the same gross income."
     >
       <div className="grid gap-6 sm:grid-cols-2">
-        <InputField
+        <SliderInput
           label="Gross Annual Income"
           value={income}
           onChange={setIncome}
@@ -87,7 +87,7 @@ export default function ComparisonCalculator() {
           step={5000}
           helpText="Same amount for both scenarios"
         />
-        <InputField
+        <SliderInput
           label="Business Expenses (1099 only)"
           value={businessExpenses}
           onChange={setBusinessExpenses}
@@ -96,7 +96,7 @@ export default function ComparisonCalculator() {
           step={500}
           helpText="Deductible expenses as a freelancer"
         />
-        <InputField
+        <SliderInput
           label="Health Insurance (1099 only)"
           value={healthInsurance}
           onChange={setHealthInsurance}
@@ -105,7 +105,7 @@ export default function ComparisonCalculator() {
           step={500}
           helpText="W2 employers typically cover this"
         />
-        <InputField
+        <SliderInput
           label="Retirement Contribution (1099 only)"
           value={retirement}
           onChange={setRetirement}

@@ -26,19 +26,15 @@ export default function CalculatorLayout({
       <Breadcrumbs category={category} calculatorName={name} />
 
       <div className="mb-2">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{name}</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">{description}</p>
+        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">{name}</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-300">{description}</p>
       </div>
 
       <TrustBar />
 
-      <div className="mt-6">
-        <AdSlot size="banner" />
-      </div>
+      <div className="mt-8">{children}</div>
 
-      <div className="mt-6">{children}</div>
-
-      <div className="mt-8">
+      <div className="mt-10">
         <AdSlot size="banner" />
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
@@ -49,7 +49,7 @@ export default function BreakEvenCalculator() {
       description="Find out how many projects or sales you need each month to cover your costs -- and how many more to hit your income goal."
     >
       <div className="grid gap-6 sm:grid-cols-2">
-        <InputField
+        <SliderInput
           label="Monthly Fixed Costs"
           value={fixedCosts}
           onChange={setFixedCosts}
@@ -58,7 +58,7 @@ export default function BreakEvenCalculator() {
           step={100}
           helpText="Rent, subscriptions, insurance, etc."
         />
-        <InputField
+        <SliderInput
           label="Average Project/Sale Value"
           value={avgProjectValue}
           onChange={setAvgProjectValue}
@@ -67,7 +67,7 @@ export default function BreakEvenCalculator() {
           step={100}
           helpText="What you charge per project or sale"
         />
-        <InputField
+        <SliderInput
           label="Variable Cost Per Project"
           value={variableCostPct}
           onChange={setVariableCostPct}
@@ -76,7 +76,7 @@ export default function BreakEvenCalculator() {
           max={100}
           helpText="Costs that scale with each project (tools, contractors, etc.)"
         />
-        <InputField
+        <SliderInput
           label="Desired Monthly Profit"
           value={desiredProfit}
           onChange={setDesiredProfit}

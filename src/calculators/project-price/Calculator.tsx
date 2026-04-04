@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
-import InputField from "@/components/InputField";
+import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
@@ -37,7 +37,7 @@ export default function ProjectPriceCalculator() {
       description="Turn your hourly rate into a professional project quote. Includes a scope-creep buffer and profit margin."
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <InputField
+        <SliderInput
           label="Your Hourly Rate"
           value={hourlyRate}
           onChange={setHourlyRate}
@@ -45,7 +45,7 @@ export default function ProjectPriceCalculator() {
           min={0}
           step={5}
         />
-        <InputField
+        <SliderInput
           label="Estimated Hours"
           value={estimatedHours}
           onChange={setEstimatedHours}
@@ -53,7 +53,7 @@ export default function ProjectPriceCalculator() {
           step={1}
           helpText="Best guess for the full project"
         />
-        <InputField
+        <SliderInput
           label="Project Expenses"
           value={expenses}
           onChange={setExpenses}
@@ -62,7 +62,7 @@ export default function ProjectPriceCalculator() {
           step={50}
           helpText="Stock images, hosting, domains, etc."
         />
-        <InputField
+        <SliderInput
           label="Scope Creep Buffer"
           value={bufferPct}
           onChange={setBufferPct}
@@ -71,7 +71,7 @@ export default function ProjectPriceCalculator() {
           max={100}
           helpText="Extra padding for unexpected work (15-25% typical)"
         />
-        <InputField
+        <SliderInput
           label="Profit Margin"
           value={profitMargin}
           onChange={setProfitMargin}
