@@ -88,11 +88,8 @@ export default function Home() {
       />
 
       {/* Hero */}
-      <div className="relative grid items-center gap-8 md:grid-cols-2">
-        <div className="absolute -left-8 -top-8 hidden opacity-[0.07] md:block dark:opacity-[0.04]">
-          <Image src="/hero-illustration.png" alt="" width={400} height={333} priority />
-        </div>
-        <div className="relative">
+      <div className="grid items-center gap-8 md:grid-cols-2">
+        <div>
           <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-gray-100">
             Free Calculators for Freelancers
           </h1>
@@ -115,9 +112,21 @@ export default function Home() {
             </span>
           </div>
         </div>
-        <div>
-          <MiniCalculator />
+        <div className="hidden md:block">
+          <Image
+            src="/hero-illustration.png"
+            alt="Freelancer calculator dashboard showing hourly rate, tax estimates, and income charts"
+            width={560}
+            height={460}
+            className="w-full h-auto rounded-xl"
+            priority
+          />
         </div>
+      </div>
+
+      {/* Mobile: show MiniCalculator instead of illustration */}
+      <div className="mt-6 md:hidden">
+        <MiniCalculator />
       </div>
 
       {/* Trust signals - moved higher (#30) */}
