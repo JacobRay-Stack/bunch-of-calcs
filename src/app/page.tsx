@@ -2,6 +2,7 @@ import Link from "next/link";
 import calculators from "@/calculators";
 import { getAllPosts } from "@/lib/blog";
 import AdSlot from "@/components/AdSlot";
+import MiniCalculator from "@/components/MiniCalculator";
 
 const categoryOrder = ["taxes", "pricing", "business"];
 const categoryLabels: Record<string, string> = {
@@ -86,23 +87,33 @@ export default function Home() {
       />
 
       {/* Hero */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-gray-100">
-          Free Calculators for Freelancers
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-lg text-gray-600 dark:text-gray-300">
-          Simple, fast tools to help you price your work, estimate taxes, and
-          run your freelance business smarter.
-        </p>
-        <Link
-          href="/freelance-rate"
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-        >
-          Try the Rate Calculator
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-        </Link>
+      <div className="grid items-center gap-8 md:grid-cols-2">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-gray-100">
+            Free Calculators for Freelancers
+          </h1>
+          <p className="mt-3 max-w-xl text-lg text-gray-600 dark:text-gray-300">
+            Simple, fast tools to help you price your work, estimate taxes, and
+            run your freelance business smarter.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+              No signup required
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+              Free forever
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+              {new Date().getFullYear()} tax rates
+            </span>
+          </div>
+        </div>
+        <div>
+          <MiniCalculator />
+        </div>
       </div>
 
       {/* Trust signals - moved higher (#30) */}

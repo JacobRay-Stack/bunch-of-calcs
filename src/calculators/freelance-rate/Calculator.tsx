@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
@@ -32,6 +33,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function FreelanceRateCalculator() {
+  const searchParams = useSearchParams();
   const [salary, setSalary] = useState(60000);
   const [expenses, setExpenses] = useState(5000);
   const [taxRate, setTaxRate] = useState(25);
@@ -43,16 +45,23 @@ export default function FreelanceRateCalculator() {
     salary, expenses, taxRate, vacationDays, sickDays, selectedIndustry,
   });
 
-  // Restore saved inputs on mount
+  // Restore from URL params or saved inputs on mount
   useEffect(() => {
-    const saved = loadSaved();
-    if (saved) {
-      if (saved.salary !== undefined) setSalary(saved.salary);
-      if (saved.expenses !== undefined) setExpenses(saved.expenses);
-      if (saved.taxRate !== undefined) setTaxRate(saved.taxRate);
-      if (saved.vacationDays !== undefined) setVacationDays(saved.vacationDays);
-      if (saved.sickDays !== undefined) setSickDays(saved.sickDays);
-      if (saved.selectedIndustry !== undefined) setSelectedIndustry(saved.selectedIndustry);
+    const urlSalary = searchParams.get("salary");
+    const urlTax = searchParams.get("tax");
+    if (urlSalary || urlTax) {
+      if (urlSalary) setSalary(Number(urlSalary));
+      if (urlTax) setTaxRate(Number(urlTax));
+    } else {
+      const saved = loadSaved();
+      if (saved) {
+        if (saved.salary !== undefined) setSalary(saved.salary);
+        if (saved.expenses !== undefined) setExpenses(saved.expenses);
+        if (saved.taxRate !== undefined) setTaxRate(saved.taxRate);
+        if (saved.vacationDays !== undefined) setVacationDays(saved.vacationDays);
+        if (saved.sickDays !== undefined) setSickDays(saved.sickDays);
+        if (saved.selectedIndustry !== undefined) setSelectedIndustry(saved.selectedIndustry);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
