@@ -211,7 +211,7 @@ export default function QuarterlyTaxCalculator() {
                 q.isPast
                   ? "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
                   : i === 1
-                  ? "border-blue-200 bg-blue-50 ring-2 ring-blue-200 dark:border-blue-700 dark:bg-blue-950 dark:ring-blue-800"
+                  ? "border-teal-200 bg-teal-50 ring-2 ring-teal-200 dark:border-teal-700 dark:bg-teal-950 dark:ring-teal-800"
                   : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
               }`}
             >
@@ -221,7 +221,7 @@ export default function QuarterlyTaxCalculator() {
                   <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-400">Past</span>
                 )}
                 {!q.isPast && i === 1 && (
-                  <span className="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-800 dark:text-blue-200">Next</span>
+                  <span className="rounded-full bg-teal-200 px-2 py-0.5 text-xs font-medium text-teal-800 dark:bg-teal-800 dark:text-teal-200">Next</span>
                 )}
               </div>
               <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
@@ -237,7 +237,7 @@ export default function QuarterlyTaxCalculator() {
                     href="https://www.irs.gov/payments"
                     target="_blank"
                     rel="noopener"
-                    className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center justify-center rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition-colors"
                   >
                     Pay IRS Now
                   </a>

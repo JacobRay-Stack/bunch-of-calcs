@@ -192,7 +192,7 @@ export default function EmergencyFundCalculator() {
           </div>
           <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
             <div
-              className="h-full rounded-full bg-blue-500 transition-all duration-500 dark:bg-blue-400"
+              className="h-full rounded-full bg-teal-500 transition-all duration-500 dark:bg-teal-400"
               style={{ width: `${results.fundedPercentage}%` }}
             />
           </div>

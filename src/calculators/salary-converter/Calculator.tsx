@@ -127,7 +127,7 @@ export default function SalaryConverter() {
               onClick={() => applyPreset(p.value)}
               className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                 amount === p.value && inputPeriod === "annual"
-                  ? "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                  ? "border-teal-300 bg-teal-50 text-teal-700 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-300"
                   : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               }`}
             >
@@ -153,7 +153,7 @@ export default function SalaryConverter() {
           <select
             value={inputPeriod}
             onChange={(e) => setInputPeriod(e.target.value as PayPeriod)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             {PERIODS.map((p) => (
               <option key={p.key} value={p.key}>
@@ -183,16 +183,16 @@ export default function SalaryConverter() {
               key={period.key}
               className={`flex items-center justify-between border-b border-gray-100 dark:border-gray-800 last:border-0 px-5 py-4 transition-colors ${
                 isInput
-                  ? "bg-blue-50 dark:bg-blue-950"
+                  ? "bg-teal-50 dark:bg-teal-950"
                   : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800"
               }`}
             >
               <div>
-                <span className={`text-sm font-medium ${isInput ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-gray-100"}`}>
+                <span className={`text-sm font-medium ${isInput ? "text-teal-700 dark:text-teal-300" : "text-gray-900 dark:text-gray-100"}`}>
                   {period.label}
                 </span>
                 {isInput && (
-                  <span className="ml-2 rounded-full bg-blue-200 dark:bg-blue-800 px-2 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200">
+                  <span className="ml-2 rounded-full bg-teal-200 dark:bg-teal-800 px-2 py-0.5 text-xs font-medium text-teal-800 dark:text-teal-200">
                     Input
                   </span>
                 )}
@@ -200,7 +200,7 @@ export default function SalaryConverter() {
               <div className="text-right">
                 <span
                   className={`text-lg tabular-nums font-bold ${
-                    isInput ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-gray-100"
+                    isInput ? "text-teal-700 dark:text-teal-300" : "text-gray-900 dark:text-gray-100"
                   }`}
                 >
                   {fmt(value)}
@@ -236,7 +236,7 @@ export default function SalaryConverter() {
       <div className="mt-6 text-center">
         <Link
           href={buildCalculatorLink("freelance-rate", {})}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
         >
           Is this rate enough? Check with our Rate Calculator &rarr;
         </Link>

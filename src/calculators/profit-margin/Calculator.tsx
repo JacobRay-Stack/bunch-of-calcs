@@ -101,7 +101,7 @@ export default function ProfitMarginCalculator() {
             onClick={() => setViewMode("monthly")}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               viewMode === "monthly"
-                ? "bg-blue-600 text-white"
+                ? "bg-teal-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
             }`}
           >
@@ -111,7 +111,7 @@ export default function ProfitMarginCalculator() {
             onClick={() => setViewMode("annual")}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               viewMode === "annual"
-                ? "bg-blue-600 text-white"
+                ? "bg-teal-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
             }`}
           >
@@ -181,20 +181,20 @@ export default function ProfitMarginCalculator() {
       />
 
       {/* Industry benchmarks */}
-      <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Industry Comparison</h3>
+      <div className="mt-6 rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
+        <h3 className="text-sm font-semibold text-teal-800 dark:text-teal-300">Industry Comparison</h3>
         <div className="mt-2">
           <select
             value={selectedIndustry}
             onChange={(e) => setSelectedIndustry(Number(e.target.value))}
-            className="rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-blue-700 dark:bg-gray-800 dark:text-gray-100"
+            className="rounded-lg border border-teal-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none dark:border-teal-700 dark:bg-gray-800 dark:text-gray-100"
           >
             {INDUSTRY_BENCHMARKS.map((b, i) => (
               <option key={b.label} value={i}>{b.label}</option>
             ))}
           </select>
         </div>
-        <p className="mt-3 text-sm text-blue-700 dark:text-blue-400">
+        <p className="mt-3 text-sm text-teal-700 dark:text-teal-400">
           {benchmark.label} typically has {benchmark.min}-{benchmark.max}% net margins. Your {pct(results.netMargin)} is{" "}
           <strong className={marginComparison === "below" ? "text-red-600 dark:text-red-400" : marginComparison === "above" ? "text-green-600 dark:text-green-400" : ""}>
             {marginComparison} the typical range
@@ -209,7 +209,7 @@ export default function ProfitMarginCalculator() {
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">What If?</h3>
         </div>
         <div className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-700">
-          <div className="p-4 text-center bg-blue-50 dark:bg-blue-950">
+          <div className="p-4 text-center bg-teal-50 dark:bg-teal-950">
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Current</p>
             <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{pct(results.netMargin)}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400">{fmt(results.netProfit * displayMultiplier)}</p>

@@ -17,14 +17,14 @@ export default function ResultCard({
     <div
       className={`rounded-lg border p-4 ${
         highlight
-          ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950"
+          ? "border-teal-200 bg-teal-50 dark:border-teal-800 dark:bg-teal-950"
           : "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
       }`}
     >
       <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{label}</p>
       <p
         className={`mt-1 text-2xl font-bold sm:text-3xl ${
-          highlight ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-gray-100"
+          highlight ? "text-teal-700 dark:text-teal-400" : "text-gray-900 dark:text-gray-100"
         }`}
       >
         {value}

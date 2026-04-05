@@ -138,14 +138,14 @@ export default function HireCalculator() {
           ? "border-green-200 bg-gradient-to-br from-green-50 to-white dark:border-green-800 dark:from-green-950 dark:to-gray-900"
           : results.netGain < 0
           ? "border-red-200 bg-gradient-to-br from-red-50 to-white dark:border-red-800 dark:from-red-950 dark:to-gray-900"
-          : "border-blue-200 bg-gradient-to-br from-blue-50 to-white dark:border-blue-800 dark:from-blue-950 dark:to-gray-900"
+          : "border-teal-200 bg-gradient-to-br from-teal-50 to-white dark:border-teal-800 dark:from-teal-950 dark:to-gray-900"
       }`}>
         <p className={`text-sm font-medium uppercase tracking-wide ${
           results.netGain > 0
             ? "text-green-600 dark:text-green-400"
             : results.netGain < 0
             ? "text-red-600 dark:text-red-400"
-            : "text-blue-600 dark:text-blue-400"
+            : "text-teal-600 dark:text-teal-400"
         }`}>
           Net Annual Gain
         </p>

@@ -160,7 +160,7 @@ export default function ComparisonCalculator() {
             onClick={() => setViewMode("annual")}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               viewMode === "annual"
-                ? "bg-blue-600 text-white"
+                ? "bg-teal-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
             }`}
           >
@@ -170,7 +170,7 @@ export default function ComparisonCalculator() {
             onClick={() => setViewMode("monthly")}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               viewMode === "monthly"
-                ? "bg-blue-600 text-white"
+                ? "bg-teal-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
             }`}
           >
@@ -232,14 +232,14 @@ export default function ComparisonCalculator() {
         </div>
 
         {/* 1099 Column */}
-        <div className="rounded-xl border border-blue-200 overflow-hidden dark:border-blue-800">
-          <div className="bg-blue-50 px-4 py-3 text-center dark:bg-blue-950">
-            <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wide dark:text-blue-300">1099 Freelancer</h3>
+        <div className="rounded-xl border border-teal-200 overflow-hidden dark:border-teal-800">
+          <div className="bg-teal-50 px-4 py-3 text-center dark:bg-teal-950">
+            <h3 className="text-sm font-bold text-teal-700 uppercase tracking-wide dark:text-teal-300">1099 Freelancer</h3>
           </div>
           <div className="p-5 space-y-4">
             <div className="text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">Take-Home {suffix}</p>
-              <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{fmt(results.takeHome1099)}</p>
+              <p className="text-3xl font-bold text-teal-700 dark:text-teal-400">{fmt(results.takeHome1099)}</p>
             </div>
             <div className="space-y-2 text-sm border-t border-gray-100 dark:border-gray-700 pt-4">
               <div className="flex justify-between text-gray-600 dark:text-gray-400">

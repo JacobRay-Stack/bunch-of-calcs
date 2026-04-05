@@ -58,9 +58,9 @@ export default function SliderInput({
         aria-valuemin={min}
         aria-valuemax={effectiveMax}
         aria-valuenow={value}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600 dark:bg-gray-700"
+        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-teal-600 dark:bg-gray-700"
         style={{
-          background: `linear-gradient(to right, #2563eb 0%, #2563eb ${pct}%, ${
+          background: `linear-gradient(to right, #0d9488 0%, #0d9488 ${pct}%, ${
             "var(--slider-track, #e5e7eb)"
           } ${pct}%, ${"var(--slider-track, #e5e7eb)"} 100%)`,
         }}
@@ -78,7 +78,7 @@ export default function SliderInput({
             max={effectiveMax}
             step={step}
             aria-label={`${label} exact value`}
-            className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-center text-sm tabular-nums text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-center text-sm tabular-nums text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
         <span className="text-xs tabular-nums text-gray-400 dark:text-gray-500">

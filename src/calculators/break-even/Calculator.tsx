@@ -199,12 +199,12 @@ export default function BreakEvenCalculator() {
 
       {/* Time-based break-even */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-          <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Time to Break Even</h3>
-          <p className="mt-1 text-2xl font-bold text-blue-900 dark:text-blue-200">
+        <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
+          <h3 className="text-sm font-semibold text-teal-800 dark:text-teal-300">Time to Break Even</h3>
+          <p className="mt-1 text-2xl font-bold text-teal-900 dark:text-teal-200">
             {results.monthsToBreakEven} {results.monthsToBreakEven === 1 ? "month" : "months"}
           </p>
-          <p className="text-xs text-blue-600 dark:text-blue-400">
+          <p className="text-xs text-teal-600 dark:text-teal-400">
             At {projectsPerMonth} projects/month, it takes {results.monthsToBreakEven} month{results.monthsToBreakEven !== 1 ? "s" : ""} to cover your costs
           </p>
         </div>
@@ -234,7 +234,7 @@ export default function BreakEvenCalculator() {
         </div>
         <div className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-gray-700">
           {results.scenarios.map((s) => (
-            <div key={s.label} className={`p-4 text-center ${s.label === "Current Price" ? "bg-blue-50 dark:bg-blue-950" : ""}`}>
+            <div key={s.label} className={`p-4 text-center ${s.label === "Current Price" ? "bg-teal-50 dark:bg-teal-950" : ""}`}>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{s.label}</p>
               <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{fmt(s.price)}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">

@@ -45,7 +45,7 @@ export default function MiniCalculator() {
             step={5000}
             value={salary}
             onChange={(e) => setSalary(Number(e.target.value))}
-            className="mt-2 w-full accent-blue-600"
+            className="mt-2 w-full accent-teal-600"
           />
           <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
             <span>$30k</span>
@@ -69,7 +69,7 @@ export default function MiniCalculator() {
             step={1}
             value={taxRate}
             onChange={(e) => setTaxRate(Number(e.target.value))}
-            className="mt-2 w-full accent-blue-600"
+            className="mt-2 w-full accent-teal-600"
           />
           <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
             <span>10%</span>
@@ -78,19 +78,19 @@ export default function MiniCalculator() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-xl bg-blue-50 p-4 text-center dark:bg-blue-950">
-        <p className="text-xs font-medium text-blue-600 uppercase tracking-wide dark:text-blue-400">
+      <div className="mt-6 rounded-xl bg-teal-50 p-4 text-center dark:bg-teal-950">
+        <p className="text-xs font-medium text-teal-600 uppercase tracking-wide dark:text-teal-400">
           Your Hourly Rate
         </p>
-        <p className="mt-1 text-4xl font-bold tabular-nums text-blue-700 dark:text-blue-300">
+        <p className="mt-1 text-4xl font-bold tabular-nums text-teal-700 dark:text-teal-300">
           {fmt(recommendedRate)}
-          <span className="text-lg font-medium text-blue-500 dark:text-blue-400">/hr</span>
+          <span className="text-lg font-medium text-teal-500 dark:text-teal-400">/hr</span>
         </p>
       </div>
 
       <Link
         href={`/freelance-rate?salary=${salary}&tax=${taxRate}`}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
       >
         See full breakdown
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

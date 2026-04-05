@@ -25,19 +25,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  Taxes: { bg: "bg-rose-100 dark:bg-rose-900/40", text: "text-rose-700 dark:text-rose-300" },
+  Pricing: { bg: "bg-teal-100 dark:bg-teal-900/40", text: "text-teal-700 dark:text-teal-300" },
+  Planning: { bg: "bg-purple-100 dark:bg-purple-900/40", text: "text-purple-700 dark:text-purple-300" },
+  Profit: { bg: "bg-amber-100 dark:bg-amber-900/40", text: "text-amber-700 dark:text-amber-300" },
+};
+
 export default async function BlogPost({ params }: PageProps) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
 
   if (!post) notFound();
 
-  // Extract the calculator slug from the link (e.g. "/emergency-fund" -> "emergency-fund")
   const calculatorSlug = post.calculatorLink?.replace(/^\//, "") || "";
+  const catColors = CATEGORY_COLORS[post.category] || { bg: "bg-gray-100 dark:bg-gray-800", text: "text-gray-600 dark:text-gray-300" };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <Link href="/blog" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400">
+        <Link href="/blog" className="text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400">
           &larr; Back to blog
         </Link>
       </div>
@@ -50,8 +57,11 @@ export default async function BlogPost({ params }: PageProps) {
               <time dateTime={post.date}>
                 {new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </time>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+              <span className={`rounded-full px-2 py-0.5 font-medium ${catColors.bg} ${catColors.text}`}>
                 {post.category}
+              </span>
+              <span className="text-gray-400 dark:text-gray-500">
+                {post.readingTime} min read
               </span>
             </div>
             <h1 className="mt-3 text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -62,7 +72,7 @@ export default async function BlogPost({ params }: PageProps) {
             </p>
           </header>
 
-          <div className="prose prose-gray mt-8 max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-blue-600 dark:prose-a:text-blue-400">
+          <div className="prose prose-gray mt-8 max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-teal-600 dark:prose-a:text-teal-400">
             {post.content.split("\n\n").map((paragraph, i) => {
               if (paragraph.startsWith("## ")) {
                 return <h2 key={i}>{paragraph.replace("## ", "")}</h2>;
@@ -89,40 +99,35 @@ export default async function BlogPost({ params }: PageProps) {
           </div>
 
           {post.calculatorLink && post.calculatorName && (
-            <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-6 text-center dark:border-blue-800 dark:bg-blue-950">
+            <div className="mt-8 rounded-xl border border-teal-200 bg-teal-50 p-6 text-center dark:border-teal-800 dark:bg-teal-950">
               <p className="text-sm text-gray-700 dark:text-gray-300">
                 Ready to run the numbers?
               </p>
               <Link
                 href={post.calculatorLink}
-                className="mt-2 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="mt-2 inline-flex items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
               >
                 Try the {post.calculatorName} &rarr;
               </Link>
             </div>
           )}
 
-          {/* Service recommendations (affiliate links) below article */}
           {calculatorSlug && (
             <ServiceRecommendations calculatorSlug={calculatorSlug} />
           )}
 
-          {/* Related calculators below article */}
           {calculatorSlug && (
             <RelatedCalculators currentSlug={calculatorSlug} />
           )}
 
-          {/* Email capture at bottom of content */}
           <EmailCapture />
         </article>
 
-        {/* Sidebar -- sticky on desktop, flows below on mobile */}
+        {/* Sidebar */}
         <aside className="mt-10 lg:mt-0">
           <div className="lg:sticky lg:top-6 space-y-6">
-            {/* Sidebar ad */}
             <AdSlot size="sidebar" />
 
-            {/* Calculator CTA in sidebar */}
             {post.calculatorLink && post.calculatorName && (
               <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
                 <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
@@ -133,14 +138,13 @@ export default async function BlogPost({ params }: PageProps) {
                 </p>
                 <Link
                   href={post.calculatorLink}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
                 >
                   Open Calculator &rarr;
                 </Link>
               </div>
             )}
 
-            {/* Email capture in sidebar */}
             <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
               <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                 Freelancer Tax Cheat Sheet
@@ -154,7 +158,6 @@ export default async function BlogPost({ params }: PageProps) {
               />
             </div>
 
-            {/* Second sidebar ad */}
             <AdSlot size="sidebar" />
           </div>
         </aside>

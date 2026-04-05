@@ -41,12 +41,12 @@ export default function RelatedCalculators({
           <Link
             key={calc.slug}
             href={`/${calc.slug}`}
-            className="group rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
+            className="group rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-teal-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-teal-600"
           >
-            <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+            <span className="text-xs font-medium text-teal-600 dark:text-teal-400">
               {categoryLabels[calc.category] || calc.category}
             </span>
-            <h3 className="mt-1 text-sm font-semibold text-gray-900 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
+            <h3 className="mt-1 text-sm font-semibold text-gray-900 group-hover:text-teal-600 dark:text-gray-100 dark:group-hover:text-teal-400">
               {calc.name}
             </h3>
             <p className="mt-1 text-xs text-gray-500 line-clamp-2 dark:text-gray-400">

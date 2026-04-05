@@ -173,9 +173,9 @@ export default function TaxDeductionCalculator() {
 
       {/* Quick sub-calculators */}
       <div className="grid gap-4 sm:grid-cols-2 mb-6">
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-          <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Mileage Calculator</h3>
-          <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">$0.70/mile (2026 IRS rate)</p>
+        <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
+          <h3 className="text-sm font-semibold text-teal-800 dark:text-teal-300">Mileage Calculator</h3>
+          <p className="text-xs text-teal-600 dark:text-teal-400 mb-2">$0.70/mile (2026 IRS rate)</p>
           <SliderInput
             label="Business Miles Driven"
             value={businessMiles}
@@ -185,14 +185,14 @@ export default function TaxDeductionCalculator() {
             step={100}
           />
           {businessMiles > 0 && (
-            <p className="mt-2 text-sm font-medium text-blue-900 dark:text-blue-200">
+            <p className="mt-2 text-sm font-medium text-teal-900 dark:text-teal-200">
               Deduction: {fmt(businessMiles * 0.7)}
             </p>
           )}
         </div>
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-          <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Home Office Calculator</h3>
-          <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">$5/sq ft, max 300 sq ft ($1,500)</p>
+        <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
+          <h3 className="text-sm font-semibold text-teal-800 dark:text-teal-300">Home Office Calculator</h3>
+          <p className="text-xs text-teal-600 dark:text-teal-400 mb-2">$5/sq ft, max 300 sq ft ($1,500)</p>
           <SliderInput
             label="Office Square Footage"
             value={officeSqFt}
@@ -202,7 +202,7 @@ export default function TaxDeductionCalculator() {
             step={10}
           />
           {officeSqFt > 0 && (
-            <p className="mt-2 text-sm font-medium text-blue-900 dark:text-blue-200">
+            <p className="mt-2 text-sm font-medium text-teal-900 dark:text-teal-200">
               Deduction: {fmt(Math.min(officeSqFt * 5, 1500))}
             </p>
           )}
@@ -264,7 +264,7 @@ export default function TaxDeductionCalculator() {
               <div className="w-32 truncate text-sm text-gray-600 dark:text-gray-400">{cat.label}</div>
               <div className="flex-1 h-4 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-blue-500 transition-all duration-300"
+                  className="h-full rounded-full bg-teal-500 transition-all duration-300"
                   style={{
                     width: `${results.totalDeductions > 0 ? (cat.value / results.totalDeductions) * 100 : 0}%`,
                   }}
@@ -291,7 +291,7 @@ export default function TaxDeductionCalculator() {
                 type="checkbox"
                 checked={!!checkedDeductions[i]}
                 onChange={() => toggleDeduction(i)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
               />
               <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">{d.label}</span>
               <span className="text-xs tabular-nums text-gray-500 dark:text-gray-400">~{fmt(d.estimate)}</span>

@@ -7,6 +7,7 @@ export interface BlogPost {
   description: string;
   date: string;
   category: string;
+  readingTime: number;
   calculatorLink?: string;
   calculatorName?: string;
 }
@@ -33,6 +34,10 @@ function parseFrontmatter(raw: string): { metadata: Record<string, string>; cont
   return { metadata, content: match[2].trim() };
 }
 
+function calcReadingTime(content: string): number {
+  return Math.ceil(content.split(/\s+/).length / 200);
+}
+
 export function getAllPosts(): BlogPost[] {
   if (!fs.existsSync(BLOG_DIR)) return [];
 
@@ -41,13 +46,14 @@ export function getAllPosts(): BlogPost[] {
   return files
     .map((filename) => {
       const raw = fs.readFileSync(path.join(BLOG_DIR, filename), "utf-8");
-      const { metadata } = parseFrontmatter(raw);
+      const { metadata, content } = parseFrontmatter(raw);
       return {
         slug: filename.replace(/\.mdx$/, ""),
         title: metadata.title || filename,
         description: metadata.description || "",
         date: metadata.date || "",
         category: metadata.category || "general",
+        readingTime: calcReadingTime(content),
         calculatorLink: metadata.calculatorLink,
         calculatorName: metadata.calculatorName,
       };
@@ -68,6 +74,7 @@ export function getPostBySlug(slug: string): BlogPostWithContent | null {
     description: metadata.description || "",
     date: metadata.date || "",
     category: metadata.category || "general",
+    readingTime: calcReadingTime(content),
     calculatorLink: metadata.calculatorLink,
     calculatorName: metadata.calculatorName,
     content,

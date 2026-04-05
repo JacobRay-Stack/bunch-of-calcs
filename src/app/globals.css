@@ -7,6 +7,10 @@ body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
+h1, h2, h3 {
+  font-family: var(--font-space-grotesk), system-ui, -apple-system, sans-serif;
+}
+
 /* Print styles (#19) -- clean output when users print calculator results */
 @media print {
   header,
@@ -39,7 +43,7 @@ body {
   }
 
   /* Ensure results are visible */
-  [class*="bg-blue-50"],
+  [class*="bg-teal-50"],
   [class*="bg-gray-50"] {
     background: white !important;
     border: 1px solid #ccc !important;

@@ -16,7 +16,7 @@ export default function ContactPage() {
         Fill out the form below or email us directly at{" "}
         <a
           href="mailto:hello@bunchofcalcs.com"
-          className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+          className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
         >
           hello@bunchofcalcs.com
         </a>

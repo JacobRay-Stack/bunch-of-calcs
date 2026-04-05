@@ -13,7 +13,7 @@ import ShareResults from "@/components/ShareResults";
 const PROCESSORS = [
   { name: "Stripe", rate: 2.9, fixed: 0.3, maxFee: Infinity, color: "bg-indigo-500" },
   { name: "Stripe ACH", rate: 0.8, fixed: 0, maxFee: 5, color: "bg-indigo-300" },
-  { name: "PayPal", rate: 3.49, fixed: 0.49, maxFee: Infinity, color: "bg-blue-500" },
+  { name: "PayPal", rate: 3.49, fixed: 0.49, maxFee: Infinity, color: "bg-teal-500" },
   { name: "Square", rate: 2.6, fixed: 0.1, maxFee: Infinity, color: "bg-gray-800" },
   { name: "Venmo Business", rate: 1.9, fixed: 0.1, maxFee: Infinity, color: "bg-cyan-500" },
   { name: "Cash App Business", rate: 2.75, fixed: 0, maxFee: Infinity, color: "bg-emerald-500" },
@@ -105,7 +105,7 @@ export default function InvoiceFeeCalculator() {
           <select
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as Frequency)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             {FREQUENCY_OPTIONS.map((f) => (
               <option key={f.key} value={f.key}>{f.label}</option>
@@ -156,7 +156,7 @@ export default function InvoiceFeeCalculator() {
                     <div className="flex items-center gap-2">
                       <div className={`h-2.5 w-2.5 rounded-full ${p.color}`} />
                       {/* Replace href with affiliate links */}
-                      <a href="#" rel="sponsored noopener" className="font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">
+                      <a href="#" rel="sponsored noopener" className="font-medium text-gray-900 dark:text-gray-100 hover:text-teal-600 dark:hover:text-teal-400">
                         {p.name}
                       </a>
                       {i === 0 && (

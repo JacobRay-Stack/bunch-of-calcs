@@ -87,7 +87,7 @@ export default function AboutPage() {
         <p>
           I&apos;m always adding new tools. If there&apos;s a calculation you do
           regularly as a freelancer and wish there was a better tool for it,{" "}
-          <Link href="/contact" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+          <Link href="/contact" className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300">
             let me know
           </Link>
           . The best calculators on this site came from real freelancer requests.

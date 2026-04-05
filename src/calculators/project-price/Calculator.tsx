@@ -202,7 +202,7 @@ export default function ProjectPriceCalculator() {
             <span>Profit Margin ({profitMargin}%)</span>
             <span className="tabular-nums font-medium text-green-600 dark:text-green-400">+{fmt(results.profit)}</span>
           </div>
-          <div className="flex justify-between px-5 py-4 text-base font-bold text-gray-900 bg-blue-50 dark:text-gray-100 dark:bg-blue-950">
+          <div className="flex justify-between px-5 py-4 text-base font-bold text-gray-900 bg-teal-50 dark:text-gray-100 dark:bg-teal-950">
             <span>Total Project Quote</span>
             <span className="tabular-nums">{fmt(results.totalQuote)}</span>
           </div>
@@ -246,7 +246,7 @@ export default function ProjectPriceCalculator() {
         </p>
         <Link
           href={buildCalculatorLink("invoice-fees", { amount: Math.round(results.totalQuote) })}
-          className="mt-2 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          className="mt-2 inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
         >
           Compare all processor fees &rarr;
         </Link>

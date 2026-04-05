@@ -126,7 +126,7 @@ export default function SelfEmploymentTaxCalculator() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Filing Status</label>
-            <select value={filingStatus} onChange={(e) => setFilingStatus(e.target.value as FilingStatus)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+            <select value={filingStatus} onChange={(e) => setFilingStatus(e.target.value as FilingStatus)} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
               <option value="single">Single</option>
               <option value="married">Married Filing Jointly</option>
             </select>
@@ -218,21 +218,21 @@ export default function SelfEmploymentTaxCalculator() {
       </div>
 
       {/* Quarterly due dates */}
-      <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">{TAX_YEAR} Quarterly Due Dates</h3>
-        <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-blue-700 dark:text-blue-400">
+      <div className="mt-6 rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
+        <h3 className="text-sm font-semibold text-teal-800 dark:text-teal-300">{TAX_YEAR} Quarterly Due Dates</h3>
+        <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-teal-700 dark:text-teal-400">
           {QUARTERLY_DUE_DATES.map((q) => (
             <div key={q.label}>{q.label}: {q.dueDate}</div>
           ))}
         </div>
-        <p className="mt-2 text-xs text-blue-600 dark:text-blue-400">Each payment: {fmt(results.quarterlyPayment)}</p>
+        <p className="mt-2 text-xs text-teal-600 dark:text-teal-400">Each payment: {fmt(results.quarterlyPayment)}</p>
       </div>
 
       {/* Cross-link to quarterly tax */}
       <div className="mt-6 text-center">
         <Link
           href={buildCalculatorLink("quarterly-tax", {})}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
         >
           See your quarterly payment schedule &rarr;
         </Link>

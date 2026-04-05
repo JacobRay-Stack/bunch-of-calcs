@@ -256,15 +256,15 @@ export default function SideHustleTaxCalculator() {
       <div className="mt-6 text-center">
         <Link
           href={buildCalculatorLink("tax-deductions", { income: sideIncome })}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
         >
           Reduce your tax with deductions &rarr;
         </Link>
       </div>
 
-      <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Why the tax feels high</h3>
-        <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
+      <div className="mt-6 rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
+        <h3 className="text-sm font-semibold text-teal-800 dark:text-teal-300">Why the tax feels high</h3>
+        <p className="mt-1 text-sm text-teal-700 dark:text-teal-400">
           Side hustle income sits on top of your W2 salary, so it&apos;s taxed at your marginal rate
           ({pct(results.marginalBracket)}), not your average rate. Plus you pay the full 15.3% SE
           tax since there&apos;s no employer to cover half. Deducting business expenses is the best

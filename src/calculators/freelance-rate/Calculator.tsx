@@ -140,20 +140,20 @@ export default function FreelanceRateCalculator() {
       />
 
       {/* Industry benchmarks */}
-      <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Industry Rate Comparison</h3>
+      <div className="mt-8 rounded-lg border border-teal-200 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-950">
+        <h3 className="text-sm font-semibold text-teal-800 dark:text-teal-300">Industry Rate Comparison</h3>
         <div className="mt-2">
           <select
             value={selectedIndustry}
             onChange={(e) => setSelectedIndustry(Number(e.target.value))}
-            className="rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-blue-700 dark:bg-gray-800 dark:text-gray-100"
+            className="rounded-lg border border-teal-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none dark:border-teal-700 dark:bg-gray-800 dark:text-gray-100"
           >
             {INDUSTRY_BENCHMARKS.map((b, i) => (
               <option key={b.label} value={i}>{b.label}</option>
             ))}
           </select>
         </div>
-        <p className="mt-3 text-sm text-blue-700 dark:text-blue-400">
+        <p className="mt-3 text-sm text-teal-700 dark:text-teal-400">
           {benchmark.label} rates typically range from <strong>{fmt(benchmark.min)}</strong> to <strong>{fmt(benchmark.max)}/hr</strong>.
           Your recommended rate of {fmt(recommendedRate)}/hr is{" "}
           <strong className={benchmarkComparison === "below" ? "text-red-600 dark:text-red-400" : benchmarkComparison === "above" ? "text-green-600 dark:text-green-400" : ""}>
@@ -194,7 +194,7 @@ export default function FreelanceRateCalculator() {
       <div className="mt-6 text-center">
         <Link
           href={buildCalculatorLink("project-price", { rate: Math.round(recommendedRate) })}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition-colors"
         >
           Price a project with this rate &rarr;
         </Link>
