@@ -3,14 +3,18 @@
 import AdSlot from "./AdSlot";
 import Breadcrumbs from "./Breadcrumbs";
 import TrustBar from "./TrustBar";
+import CalculatorToolbar from "./CalculatorToolbar";
 import ServiceRecommendations from "./ServiceRecommendations";
 import RelatedCalculators from "./RelatedCalculators";
+import EmailCapture from "./EmailCapture";
 
 interface CalculatorLayoutProps {
   name: string;
   slug: string;
   category: string;
   description: string;
+  onReset?: () => void;
+  serviceContext?: string;
   children: React.ReactNode;
 }
 
@@ -19,6 +23,8 @@ export default function CalculatorLayout({
   slug,
   category,
   description,
+  onReset,
+  serviceContext,
   children,
 }: CalculatorLayoutProps) {
   return (
@@ -26,8 +32,15 @@ export default function CalculatorLayout({
       <Breadcrumbs category={category} calculatorName={name} />
 
       <div className="mb-2">
-        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">{name}</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">{description}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">{name}</h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-300">{description}</p>
+          </div>
+          <div className="flex-shrink-0 pt-1">
+            <CalculatorToolbar onReset={onReset} />
+          </div>
+        </div>
       </div>
 
       <TrustBar />
@@ -38,7 +51,9 @@ export default function CalculatorLayout({
         <AdSlot size="banner" />
       </div>
 
-      <ServiceRecommendations calculatorSlug={slug} />
+      <ServiceRecommendations calculatorSlug={slug} contextLine={serviceContext} />
+
+      <EmailCapture />
 
       <RelatedCalculators currentSlug={slug} />
     </div>

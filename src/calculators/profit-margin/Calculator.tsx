@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 
 const INDUSTRY_BENCHMARKS = [
   { label: "Freelance Services", min: 50, max: 80 },
@@ -20,6 +22,31 @@ export default function ProfitMarginCalculator() {
   const [operatingExpenses, setOperatingExpenses] = useState(2000);
   const [selectedIndustry, setSelectedIndustry] = useState(0);
   const [viewMode, setViewMode] = useState<"monthly" | "annual">("monthly");
+
+  const { loadSaved, clearSaved } = useSavedInputs("profit-margin", {
+    revenue, cogs, operatingExpenses, selectedIndustry, viewMode,
+  });
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.revenue !== undefined) setRevenue(saved.revenue);
+      if (saved.cogs !== undefined) setCogs(saved.cogs);
+      if (saved.operatingExpenses !== undefined) setOperatingExpenses(saved.operatingExpenses);
+      if (saved.selectedIndustry !== undefined) setSelectedIndustry(saved.selectedIndustry);
+      if (saved.viewMode !== undefined) setViewMode(saved.viewMode);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setRevenue(10000);
+    setCogs(4000);
+    setOperatingExpenses(2000);
+    setSelectedIndustry(0);
+    setViewMode("monthly");
+    clearSaved();
+  };
 
   const displayMultiplier = viewMode === "annual" ? 12 : 1;
   const displayRevenue = revenue * displayMultiplier;
@@ -65,6 +92,7 @@ export default function ProfitMarginCalculator() {
       slug="profit-margin"
       category="profit"
       description="Calculate gross margin, net margin, and markup from your revenue and costs. See exactly where your money goes."
+      onReset={handleReset}
     >
       {/* View toggle */}
       <div className="mb-6 flex justify-center">
@@ -141,6 +169,16 @@ export default function ProfitMarginCalculator() {
           subtext="On cost of goods"
         />
       </div>
+
+      <ShareResults
+        calculatorName="Profit Margin Calculator"
+        results={{
+          "Gross Margin": pct(results.grossMargin),
+          "Net Margin": pct(results.netMargin),
+          "Markup": pct(results.markup),
+          "Net Profit": fmt(results.netProfit * displayMultiplier),
+        }}
+      />
 
       {/* Industry benchmarks */}
       <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">

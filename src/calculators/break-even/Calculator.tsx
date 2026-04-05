@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 
 export default function BreakEvenCalculator() {
   const [fixedCosts, setFixedCosts] = useState(3000);
@@ -14,6 +16,33 @@ export default function BreakEvenCalculator() {
   const [desiredProfit, setDesiredProfit] = useState(5000);
   const [projectsPerMonth, setProjectsPerMonth] = useState(4);
   const [currentSavings, setCurrentSavings] = useState(10000);
+
+  const { loadSaved, clearSaved } = useSavedInputs("break-even", {
+    fixedCosts, avgProjectValue, variableCostPct, desiredProfit, projectsPerMonth, currentSavings,
+  });
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.fixedCosts !== undefined) setFixedCosts(saved.fixedCosts);
+      if (saved.avgProjectValue !== undefined) setAvgProjectValue(saved.avgProjectValue);
+      if (saved.variableCostPct !== undefined) setVariableCostPct(saved.variableCostPct);
+      if (saved.desiredProfit !== undefined) setDesiredProfit(saved.desiredProfit);
+      if (saved.projectsPerMonth !== undefined) setProjectsPerMonth(saved.projectsPerMonth);
+      if (saved.currentSavings !== undefined) setCurrentSavings(saved.currentSavings);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setFixedCosts(3000);
+    setAvgProjectValue(2000);
+    setVariableCostPct(10);
+    setDesiredProfit(5000);
+    setProjectsPerMonth(4);
+    setCurrentSavings(10000);
+    clearSaved();
+  };
 
   const results = useMemo(() => {
     const variableCost = avgProjectValue * (variableCostPct / 100);
@@ -75,6 +104,7 @@ export default function BreakEvenCalculator() {
       slug="break-even"
       category="planning"
       description="Find out how many projects or sales you need each month to cover your costs -- and how many more to hit your income goal."
+      onReset={handleReset}
     >
       <div className="grid gap-6 sm:grid-cols-2">
         <SliderInput
@@ -156,6 +186,16 @@ export default function BreakEvenCalculator() {
           subtext="Extra projects beyond break-even"
         />
       </div>
+
+      <ShareResults
+        calculatorName="Break-Even Calculator"
+        results={{
+          "Break-Even Point": `${results.breakEvenUnits} projects (${fmt(results.breakEvenRevenue)})`,
+          "To Hit Profit Goal": `${results.profitUnits} projects (${fmt(results.profitRevenue)})`,
+          "Contribution Margin": fmt(results.contributionMargin),
+          "Time to Break Even": `${results.monthsToBreakEven} months`,
+        }}
+      />
 
       {/* Time-based break-even */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

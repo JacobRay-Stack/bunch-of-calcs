@@ -3,10 +3,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 
 const CATEGORIES = [
   { key: "homeOffice", label: "Home Office", helpText: "Simplified method: $5/sq ft, max 300 sq ft ($1,500)" },
@@ -53,9 +55,46 @@ export default function TaxDeductionCalculator() {
     other: 400,
   });
 
+  const { loadSaved, clearSaved } = useSavedInputs("tax-deductions", {
+    grossIncome, taxRate, businessMiles, officeSqFt, checkedDeductions, expenses,
+  });
+
+  const handleReset = () => {
+    setGrossIncome(80000);
+    setTaxRate(30);
+    setBusinessMiles(0);
+    setOfficeSqFt(0);
+    setCheckedDeductions({});
+    setExpenses({
+      homeOffice: 1500,
+      equipment: 2000,
+      internet: 1200,
+      travel: 500,
+      education: 300,
+      health: 6000,
+      retirement: 0,
+      marketing: 600,
+      professional: 500,
+      other: 400,
+    });
+    clearSaved();
+  };
+
   useEffect(() => {
     const inc = searchParams.get("income");
-    if (inc) setGrossIncome(Number(inc));
+    if (inc) {
+      setGrossIncome(Number(inc));
+    } else {
+      const saved = loadSaved();
+      if (saved) {
+        if (saved.grossIncome !== undefined) setGrossIncome(saved.grossIncome);
+        if (saved.taxRate !== undefined) setTaxRate(saved.taxRate);
+        if (saved.businessMiles !== undefined) setBusinessMiles(saved.businessMiles);
+        if (saved.officeSqFt !== undefined) setOfficeSqFt(saved.officeSqFt);
+        if (saved.checkedDeductions !== undefined) setCheckedDeductions(saved.checkedDeductions);
+        if (saved.expenses !== undefined) setExpenses(saved.expenses);
+      }
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Derive effective expenses by overlaying sub-calculator values onto manual expenses
@@ -110,6 +149,7 @@ export default function TaxDeductionCalculator() {
       slug="tax-deductions"
       category="taxes"
       description="Enter your business expenses by category and see how much they save you in taxes. Every dollar you deduct reduces your taxable income."
+      onReset={handleReset}
     >
       <div className="grid gap-6 sm:grid-cols-2 mb-6">
         <SliderInput
@@ -203,6 +243,16 @@ export default function TaxDeductionCalculator() {
           subtext={`Down from ${fmt(grossIncome)}`}
         />
       </div>
+
+      <ShareResults
+        calculatorName="Tax Deduction Estimator"
+        results={{
+          "Total Deductions": fmt(results.totalDeductions),
+          "Estimated Tax Savings": fmt(results.taxSavings),
+          "Taxable Income": fmt(results.effectiveIncome),
+          "Monthly Tax Savings": fmt(results.monthlyTaxSavings),
+        }}
+      />
 
       {/* Visual breakdown */}
       <div className="mt-8 space-y-2">

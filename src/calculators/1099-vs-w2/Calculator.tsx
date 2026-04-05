@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import StateSelector from "@/components/StateSelector";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 import {
   calculateSETax,
   calculateFederalTax,
@@ -24,6 +26,33 @@ export default function ComparisonCalculator() {
   const [retirement, setRetirement] = useState(0);
   const [stateAbbr, setStateAbbr] = useState("NONE");
   const [viewMode, setViewMode] = useState<"annual" | "monthly">("annual");
+
+  const { loadSaved, clearSaved } = useSavedInputs("1099-vs-w2", {
+    income, businessExpenses, healthInsurance, retirement, stateAbbr, viewMode,
+  });
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.income !== undefined) setIncome(saved.income);
+      if (saved.businessExpenses !== undefined) setBusinessExpenses(saved.businessExpenses);
+      if (saved.healthInsurance !== undefined) setHealthInsurance(saved.healthInsurance);
+      if (saved.retirement !== undefined) setRetirement(saved.retirement);
+      if (saved.stateAbbr !== undefined) setStateAbbr(saved.stateAbbr);
+      if (saved.viewMode !== undefined) setViewMode(saved.viewMode);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setIncome(80000);
+    setBusinessExpenses(5000);
+    setHealthInsurance(6000);
+    setRetirement(0);
+    setStateAbbr("NONE");
+    setViewMode("annual");
+    clearSaved();
+  };
 
   const results = useMemo(() => {
     // W2 calculation
@@ -82,6 +111,7 @@ export default function ComparisonCalculator() {
       slug="1099-vs-w2"
       category="taxes"
       description="Compare what you actually take home as a freelancer (1099) versus an employee (W2) at the same gross income."
+      onReset={handleReset}
     >
       <div className="grid gap-6 sm:grid-cols-2">
         <SliderInput
@@ -228,6 +258,16 @@ export default function ComparisonCalculator() {
           </div>
         </div>
       </div>
+
+      <ShareResults
+        calculatorName="1099 vs W2 Comparison"
+        results={{
+          "W2 Take-Home": fmt(results.w2TakeHome),
+          "1099 Take-Home": fmt(results.takeHome1099),
+          "Difference": formatCurrency(results.difference),
+          "Equivalent Hourly Rate": formatCurrency(results.equivalentHourlyRate),
+        }}
+      />
 
       {/* Difference banner */}
       <div

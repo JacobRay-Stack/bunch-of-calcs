@@ -4,10 +4,12 @@ import { SERVICES, CALCULATOR_SERVICES } from "@/lib/services";
 
 interface ServiceRecommendationsProps {
   calculatorSlug: string;
+  contextLine?: string;
 }
 
 export default function ServiceRecommendations({
   calculatorSlug,
+  contextLine,
 }: ServiceRecommendationsProps) {
   const serviceKeys = CALCULATOR_SERVICES[calculatorSlug];
   if (!serviceKeys || serviceKeys.length === 0) return null;
@@ -16,21 +18,31 @@ export default function ServiceRecommendations({
     .map((key) => SERVICES[key])
     .filter(Boolean);
 
+  // Append UTM params so you can track which calculator drives affiliate clicks
+  const withUtm = (url: string, serviceName: string) => {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}utm_source=bunchofcalcs&utm_medium=affiliate&utm_campaign=${calculatorSlug}&utm_content=${serviceName.toLowerCase().replace(/\s+/g, "-")}`;
+  };
+
   return (
-    <div className="mt-10">
+    <div className="mt-10 print:hidden">
       <div className="mb-4">
         <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
           Ready to put these numbers to work?
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Tools that pair well with this calculator.
-        </p>
+        {contextLine ? (
+          <p className="text-sm text-gray-600 dark:text-gray-400">{contextLine}</p>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Tools that pair well with this calculator.
+          </p>
+        )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => (
           <a
             key={service.name}
-            href={service.url}
+            href={withUtm(service.url, service.name)}
             target="_blank"
             rel="noopener noreferrer sponsored"
             aria-label={`${service.cta} -- opens in a new tab`}

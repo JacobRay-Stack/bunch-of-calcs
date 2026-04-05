@@ -10,6 +10,10 @@ import breakEven from "./break-even/config";
 import projectPrice from "./project-price/config";
 import sideHustleTax from "./side-hustle-tax/config";
 import quarterlyTax from "./quarterly-tax/config";
+import lifestyleBudget from "./lifestyle-budget/config";
+import clientValue from "./client-value/config";
+import emergencyFund from "./emergency-fund/config";
+import hireCalculator from "./hire-calculator/config";
 
 // Add new calculators here. The homepage and dynamic routes read from this array.
 const calculators: CalculatorConfig[] = [
@@ -24,6 +28,10 @@ const calculators: CalculatorConfig[] = [
   projectPrice,
   sideHustleTax,
   quarterlyTax,
+  lifestyleBudget,
+  clientValue,
+  emergencyFund,
+  hireCalculator,
 ];
 
 export default calculators;

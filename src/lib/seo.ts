@@ -6,30 +6,30 @@ const SITE_URL = "https://www.bunchofcalcs.com";
 const OG_IMAGE = `${SITE_URL}/og-default.png`;
 
 export function generateCalculatorMetadata(calc: CalculatorConfig): Metadata {
-  const title = `${calc.name} | ${SITE_NAME}`;
+  // Use just the calculator name -- Next.js title template appends "| Bunch of Calcs"
+  const title = calc.name;
+  const ogTitle = `${calc.name} | ${SITE_NAME}`;
   const description = calc.description;
   const url = `${SITE_URL}/${calc.slug}`;
 
   return {
     title,
     description,
-    keywords: calc.keywords,
     alternates: {
       canonical: url,
     },
     openGraph: {
-      title,
+      title: ogTitle,
       description,
       type: "website",
       url,
       siteName: SITE_NAME,
-      images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: `${calc.name} - ${SITE_NAME}` }],
+      // OG image generated dynamically by [slug]/opengraph-image.tsx
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: ogTitle,
       description,
-      images: [OG_IMAGE],
     },
   };
 }
@@ -56,6 +56,19 @@ export function generateWebApplicationJsonLd(calc: CalculatorConfig) {
   };
 }
 
+export function generateHowToJsonLd(name: string, steps: string[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name,
+    step: steps.map((text, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      text,
+    })),
+  };
+}
+
 export const defaultMetadata: Metadata = {
   metadataBase: new URL("https://www.bunchofcalcs.com"),
   title: {
@@ -64,13 +77,6 @@ export const defaultMetadata: Metadata = {
   },
   description:
     "Free online calculators built for freelancers and solopreneurs. Calculate your rates, taxes, profit margins, and more.",
-  keywords: [
-    "freelance calculator",
-    "rate calculator",
-    "freelancer tools",
-    "solopreneur calculator",
-    "business calculator",
-  ],
   alternates: {
     canonical: SITE_URL,
   },

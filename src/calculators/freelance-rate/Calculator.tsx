@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import SliderInput from "@/components/SliderInput";
@@ -8,7 +8,10 @@ import HeroResult from "@/components/HeroResult";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
+import ScenarioCompare from "@/components/ScenarioCompare";
 import { buildCalculatorLink } from "@/lib/calculator-links";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 
 const WORK_DAYS_PER_YEAR = 260;
 const HOURS_PER_DAY = 8;
@@ -36,6 +39,34 @@ export default function FreelanceRateCalculator() {
   const [sickDays, setSickDays] = useState(5);
   const [selectedIndustry, setSelectedIndustry] = useState(0);
 
+  const { loadSaved, clearSaved } = useSavedInputs("freelance-rate", {
+    salary, expenses, taxRate, vacationDays, sickDays, selectedIndustry,
+  });
+
+  // Restore saved inputs on mount
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.salary !== undefined) setSalary(saved.salary);
+      if (saved.expenses !== undefined) setExpenses(saved.expenses);
+      if (saved.taxRate !== undefined) setTaxRate(saved.taxRate);
+      if (saved.vacationDays !== undefined) setVacationDays(saved.vacationDays);
+      if (saved.sickDays !== undefined) setSickDays(saved.sickDays);
+      if (saved.selectedIndustry !== undefined) setSelectedIndustry(saved.selectedIndustry);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setSalary(60000);
+    setExpenses(5000);
+    setTaxRate(25);
+    setVacationDays(15);
+    setSickDays(5);
+    setSelectedIndustry(0);
+    clearSaved();
+  };
+
   const workingDays = WORK_DAYS_PER_YEAR - vacationDays - sickDays;
   const billableHours = workingDays * HOURS_PER_DAY;
   const totalNeeded = (salary + expenses) / (1 - taxRate / 100);
@@ -62,7 +93,7 @@ export default function FreelanceRateCalculator() {
     "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   return (
-    <CalculatorLayout name="Freelance Rate Calculator" slug="freelance-rate" category="pricing" description="Figure out what you need to charge per hour to hit your income goals. Accounts for taxes, business expenses, vacation, and sick days.">
+    <CalculatorLayout name="Freelance Rate Calculator" slug="freelance-rate" category="pricing" description="Figure out what you need to charge per hour to hit your income goals. Accounts for taxes, business expenses, vacation, and sick days." onReset={handleReset} serviceContext={`You calculated a ${fmt(recommendedRate)}/hr rate -- here are tools to help you invoice and manage clients at that rate.`}>
       <div className="space-y-5">
         <SliderInput label="Desired Annual Salary" value={salary} onChange={setSalary} min={0} max={300000} step={1000} type="currency" helpText="What you want to take home before personal taxes" />
         <SliderInput label="Annual Business Expenses" value={expenses} onChange={setExpenses} min={0} max={50000} step={500} type="currency" helpText="Software, equipment, insurance, coworking, etc." />
@@ -78,6 +109,26 @@ export default function FreelanceRateCalculator() {
         <ResultCard label="Day Rate" value={fmt(dayRate)} subtext="Based on 8 billable hours" />
         <ResultCard label="Weekly Project Rate" value={fmt(projectRate)} subtext="Based on a 40-hour week" />
       </div>
+
+      <ShareResults
+        calculatorName="Freelance Rate Calculator"
+        results={{
+          "Recommended Hourly Rate": fmt(recommendedRate),
+          "Minimum Hourly Rate": fmt(hourlyRate),
+          "Day Rate": fmt(dayRate),
+          "Weekly Project Rate": fmt(projectRate),
+        }}
+      />
+
+      <ScenarioCompare
+        currentResults={{
+          "Hourly Rate": fmt(recommendedRate),
+          "Day Rate": fmt(dayRate),
+          "Weekly Rate": fmt(projectRate),
+          "Annual Gross": fmt(totalNeeded),
+        }}
+        currentLabel="Current"
+      />
 
       {/* Industry benchmarks */}
       <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
@@ -150,19 +201,19 @@ export default function FreelanceRateCalculator() {
       <SEOContent>
         <h2>How to Calculate Your Freelance Rate</h2>
         <p>Setting the right freelance rate is one of the most important decisions you will make as an independent worker. Charge too little and you will burn out working long hours for less than you would earn as an employee. Charge too much without the experience to back it up and you will struggle to land clients.</p>
-        <p>The formula is straightforward: figure out how much money you need to earn in a year, then divide by the number of hours you can realistically bill. The trick is accounting for all the hidden costs that eat into your income -- taxes, business expenses, time off, and non-billable work.</p>
+        <p>The formula is straightforward: figure out how much money you need to earn in a year, then divide by the number of hours you can realistically bill. The trick is accounting for all the hidden costs that eat into your income -- <a href="/self-employment-tax">taxes</a>, business expenses, time off, and non-billable work.</p>
 
         <h2>What Most Freelancers Get Wrong About Pricing</h2>
         <p>The biggest mistake new freelancers make is basing their rate on what they earned as an employee divided by 2,080 hours. This ignores several critical factors:</p>
         <ul>
-          <li><strong>Self-employment tax</strong> adds 15.3% on top of your income tax. As an employee, your company paid half. Now you pay both halves.</li>
-          <li><strong>Benefits you lose</strong> include health insurance ($6,000-$15,000/year), retirement matching, paid time off, and equipment.</li>
+          <li><strong><a href="/self-employment-tax">Self-employment tax</a></strong> adds 15.3% on top of your income tax. As an employee, your company paid half. Now you pay both halves.</li>
+          <li><strong>Benefits you lose</strong> include health insurance ($6,000-$15,000/year), retirement matching, paid time off, and equipment. Use the <a href="/1099-vs-w2">1099 vs W2 comparison</a> to see the real difference.</li>
           <li><strong>Non-billable time</strong> is real. Marketing, invoicing, bookkeeping, client calls, and project management can eat 30-40% of your working hours.</li>
           <li><strong>Gaps between projects</strong> mean you won&apos;t bill every week of the year. Plan for 40-46 working weeks, not 52.</li>
         </ul>
 
         <h2>Hourly vs Project-Based Pricing</h2>
-        <p>This calculator gives you an hourly rate, but many freelancers quote per-project prices. Here is how to use your hourly rate for project pricing: estimate the total hours a project will take, multiply by your hourly rate, then add a 15-25% buffer for scope creep. That is your project quote.</p>
+        <p>This calculator gives you an hourly rate, but many freelancers quote per-project prices. Use the <a href="/project-price">Project Price Calculator</a> to turn your hourly rate into a client-ready quote with scope creep buffer built in.</p>
         <p>Project pricing has an advantage: as you get faster and more efficient, your effective hourly rate goes up without having to renegotiate. A project you quoted at $5,000 might take you 40 hours the first time but only 25 hours once you have a system -- effectively raising your rate from $125/hr to $200/hr.</p>
 
         <h2>How to Raise Your Rates</h2>
@@ -173,6 +224,7 @@ export default function FreelanceRateCalculator() {
           <li>Your skills have grown significantly since you set your current rate</li>
           <li>You are earning less per hour than you would as a full-time employee with benefits</li>
         </ul>
+        <p>Not sure if your business can support higher rates? Run the numbers through the <a href="/break-even">Break-Even Calculator</a> to see how many clients you need at your new rate.</p>
       </SEOContent>
 
       <FAQ items={FAQ_ITEMS} />

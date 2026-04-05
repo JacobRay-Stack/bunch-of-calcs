@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import StateSelector from "@/components/StateSelector";
@@ -17,6 +18,7 @@ import {
   formatPercent,
 } from "@/lib/tax";
 import { calculateStateTax } from "@/lib/state-taxes";
+import ShareResults from "@/components/ShareResults";
 import { buildCalculatorLink } from "@/lib/calculator-links";
 
 export default function SideHustleTaxCalculator() {
@@ -25,6 +27,31 @@ export default function SideHustleTaxCalculator() {
   const [sideExpenses, setSideExpenses] = useState(2000);
   const [stateAbbr, setStateAbbr] = useState("NONE");
   const [payFrequency, setPayFrequency] = useState(24); // biweekly = 24 paychecks
+
+  const { loadSaved, clearSaved } = useSavedInputs("side-hustle-tax", {
+    w2Income, sideIncome, sideExpenses, stateAbbr, payFrequency,
+  });
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.w2Income !== undefined) setW2Income(saved.w2Income);
+      if (saved.sideIncome !== undefined) setSideIncome(saved.sideIncome);
+      if (saved.sideExpenses !== undefined) setSideExpenses(saved.sideExpenses);
+      if (saved.stateAbbr !== undefined) setStateAbbr(saved.stateAbbr);
+      if (saved.payFrequency !== undefined) setPayFrequency(saved.payFrequency);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setW2Income(55000);
+    setSideIncome(15000);
+    setSideExpenses(2000);
+    setStateAbbr("NONE");
+    setPayFrequency(24);
+    clearSaved();
+  };
 
   const results = useMemo(() => {
     // Without side hustle
@@ -98,6 +125,7 @@ export default function SideHustleTaxCalculator() {
       slug="side-hustle-tax"
       category="taxes"
       description="Have a W2 job and freelance on the side? See exactly how much extra tax your side income creates and what you actually keep."
+      onReset={handleReset}
     >
       <div className="grid gap-6 sm:grid-cols-3">
         <SliderInput
@@ -155,6 +183,16 @@ export default function SideHustleTaxCalculator() {
           subtext="Your highest bracket with side income"
         />
       </div>
+
+      <ShareResults
+        calculatorName="Side Hustle Tax Calculator"
+        results={{
+          "Side Hustle Take-Home": fmt(results.sideHustleTakeHome),
+          "Additional Tax Owed": fmt(results.totalAdditionalTax),
+          "Effective Side Hustle Tax Rate": pct(results.effectiveSideRate),
+          "Quarterly Payment": fmt(results.quarterlyPayment),
+        }}
+      />
 
       {/* Where the tax comes from */}
       <div className="mt-8 rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700">

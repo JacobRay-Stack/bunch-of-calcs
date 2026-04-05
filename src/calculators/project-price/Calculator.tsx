@@ -4,10 +4,12 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 import { buildCalculatorLink } from "@/lib/calculator-links";
 
 export default function ProjectPriceCalculator() {
@@ -19,9 +21,35 @@ export default function ProjectPriceCalculator() {
   const [bufferPct, setBufferPct] = useState(15);
   const [revisionRounds, setRevisionRounds] = useState(2);
 
+  const { loadSaved, clearSaved } = useSavedInputs("project-price", {
+    hourlyRate, estimatedHours, expenses, profitMargin, bufferPct, revisionRounds,
+  });
+
+  const handleReset = () => {
+    setHourlyRate(75);
+    setEstimatedHours(40);
+    setExpenses(200);
+    setProfitMargin(20);
+    setBufferPct(15);
+    setRevisionRounds(2);
+    clearSaved();
+  };
+
   useEffect(() => {
     const rate = searchParams.get("rate");
-    if (rate) setHourlyRate(Number(rate));
+    if (rate) {
+      setHourlyRate(Number(rate));
+    } else {
+      const saved = loadSaved();
+      if (saved) {
+        if (saved.hourlyRate !== undefined) setHourlyRate(saved.hourlyRate);
+        if (saved.estimatedHours !== undefined) setEstimatedHours(saved.estimatedHours);
+        if (saved.expenses !== undefined) setExpenses(saved.expenses);
+        if (saved.profitMargin !== undefined) setProfitMargin(saved.profitMargin);
+        if (saved.bufferPct !== undefined) setBufferPct(saved.bufferPct);
+        if (saved.revisionRounds !== undefined) setRevisionRounds(saved.revisionRounds);
+      }
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const results = useMemo(() => {
@@ -57,6 +85,7 @@ export default function ProjectPriceCalculator() {
       slug="project-price"
       category="pricing"
       description="Turn your hourly rate into a professional project quote. Includes a scope-creep buffer and profit margin."
+      onReset={handleReset}
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <SliderInput
@@ -131,6 +160,15 @@ export default function ProjectPriceCalculator() {
           subtext="Based on 8-hour days"
         />
       </div>
+
+      <ShareResults
+        calculatorName="Project Price Calculator"
+        results={{
+          "Total Project Quote": fmt(results.totalQuote),
+          "Effective Hourly Rate": fmt(results.effectiveHourly),
+          "Effective Day Rate": fmt(results.perDay),
+        }}
+      />
 
       {/* Quote breakdown */}
       <div className="mt-8 rounded-xl border border-gray-200 overflow-hidden dark:border-gray-700">

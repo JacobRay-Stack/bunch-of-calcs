@@ -6,3 +6,51 @@
 body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
+
+/* Print styles (#19) -- clean output when users print calculator results */
+@media print {
+  header,
+  footer,
+  nav,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  /* Remove dark mode styles in print */
+  .dark body,
+  .dark main {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Clean up cards and borders for print */
+  [class*="rounded"] {
+    border-radius: 0 !important;
+  }
+
+  [class*="shadow"] {
+    box-shadow: none !important;
+  }
+
+  /* Ensure results are visible */
+  [class*="bg-blue-50"],
+  [class*="bg-gray-50"] {
+    background: white !important;
+    border: 1px solid #ccc !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1cm;
+  }
+
+  a[href]::after {
+    content: none !important;
+  }
+}

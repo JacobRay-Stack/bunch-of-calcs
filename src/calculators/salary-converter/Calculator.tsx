@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import { buildCalculatorLink } from "@/lib/calculator-links";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 
 type PayPeriod = "hourly" | "daily" | "weekly" | "biweekly" | "monthly" | "annual";
 
@@ -34,6 +36,29 @@ export default function SalaryConverter() {
   const [inputPeriod, setInputPeriod] = useState<PayPeriod>("annual");
   const [hoursPerWeek, setHoursPerWeek] = useState(40);
   const [weeksPerYear, setWeeksPerYear] = useState(52);
+
+  const { loadSaved, clearSaved } = useSavedInputs("salary-converter", {
+    amount, inputPeriod, hoursPerWeek, weeksPerYear,
+  });
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.amount !== undefined) setAmount(saved.amount);
+      if (saved.inputPeriod !== undefined) setInputPeriod(saved.inputPeriod);
+      if (saved.hoursPerWeek !== undefined) setHoursPerWeek(saved.hoursPerWeek);
+      if (saved.weeksPerYear !== undefined) setWeeksPerYear(saved.weeksPerYear);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setAmount(60000);
+    setInputPeriod("annual");
+    setHoursPerWeek(40);
+    setWeeksPerYear(52);
+    clearSaved();
+  };
 
   const conversions = useMemo(() => {
     const hoursPerYear = hoursPerWeek * weeksPerYear;
@@ -90,6 +115,7 @@ export default function SalaryConverter() {
       slug="salary-converter"
       category="pricing"
       description="Instantly convert between hourly, daily, weekly, biweekly, monthly, and annual pay. Works both directions."
+      onReset={handleReset}
     >
       {/* Quick presets */}
       <div className="mb-6">
@@ -193,6 +219,18 @@ export default function SalaryConverter() {
       <p className="mt-1 text-xs text-gray-400 dark:text-gray-500 text-right">
         After-tax estimates assume 25% combined tax rate
       </p>
+
+      <ShareResults
+        calculatorName="Salary Converter"
+        results={{
+          "Hourly": fmt(conversions.hourly),
+          "Daily": fmt(conversions.daily),
+          "Weekly": fmt(conversions.weekly),
+          "Biweekly": fmt(conversions.biweekly),
+          "Monthly": fmt(conversions.monthly),
+          "Annual": fmt(conversions.annual),
+        }}
+      />
 
       {/* Cross-link */}
       <div className="mt-6 text-center">

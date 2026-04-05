@@ -85,7 +85,7 @@ export default function SliderInput({
           {type === "currency" ? "$" + effectiveMax.toLocaleString() : effectiveMax}
         </span>
       </div>
-      {helpText && <p className="text-xs text-gray-500 dark:text-gray-400">{helpText}</p>}
+      {helpText && <p className="text-xs text-gray-600 dark:text-gray-400">{helpText}</p>}
     </div>
   );
 }

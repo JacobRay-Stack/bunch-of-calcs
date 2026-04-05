@@ -3,10 +3,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import HeroResult from "@/components/HeroResult";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 
 const PROCESSORS = [
   { name: "Stripe", rate: 2.9, fixed: 0.3, maxFee: Infinity, color: "bg-indigo-500" },
@@ -35,9 +37,27 @@ export default function InvoiceFeeCalculator() {
   const [invoiceAmount, setInvoiceAmount] = useState(1500);
   const [frequency, setFrequency] = useState<Frequency>("monthly");
 
+  const { loadSaved, clearSaved } = useSavedInputs("invoice-fees", {
+    invoiceAmount, frequency,
+  });
+
+  const handleReset = () => {
+    setInvoiceAmount(1500);
+    setFrequency("monthly");
+    clearSaved();
+  };
+
   useEffect(() => {
     const amt = searchParams.get("amount");
-    if (amt) setInvoiceAmount(Number(amt));
+    if (amt) {
+      setInvoiceAmount(Number(amt));
+    } else {
+      const saved = loadSaved();
+      if (saved) {
+        if (saved.invoiceAmount !== undefined) setInvoiceAmount(saved.invoiceAmount);
+        if (saved.frequency !== undefined) setFrequency(saved.frequency);
+      }
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const frequencyMultiplier = FREQUENCY_OPTIONS.find((f) => f.key === frequency)!.multiplier;
@@ -66,6 +86,7 @@ export default function InvoiceFeeCalculator() {
       slug="invoice-fees"
       category="pricing"
       description="Compare payment processor fees side by side. See exactly how much you keep from every invoice."
+      onReset={handleReset}
     >
       <div className="grid gap-6 sm:grid-cols-2">
         <SliderInput
@@ -97,6 +118,17 @@ export default function InvoiceFeeCalculator() {
         label="Annual Processing Fees (Most Expensive)"
         value={fmt(mostExpensive.annualFees)}
         subtext={`Using ${mostExpensive.name} -- switch to ${cheapest.name} to save ${fmt(mostExpensive.annualFees - cheapest.annualFees)}/year`}
+      />
+
+      <ShareResults
+        calculatorName="Invoice Fee Calculator"
+        results={{
+          "Invoice Amount": fmt(invoiceAmount),
+          "Cheapest Processor": `${cheapest.name} (${fmt(cheapest.fee)} fee)`,
+          "You Receive (cheapest)": fmt(cheapest.youReceive),
+          "Annual Fees (cheapest)": fmt(cheapest.annualFees),
+          "Potential Annual Savings": fmt(mostExpensive.annualFees - cheapest.annualFees),
+        }}
       />
 
       {/* Comparison table */}

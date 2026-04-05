@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import CalculatorLayout from "@/components/CalculatorLayout";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import ResultCard from "@/components/ResultCard";
 import StateSelector from "@/components/StateSelector";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
 import {
   calculateSETax,
   calculateFederalTax,
@@ -38,6 +40,35 @@ export default function QuarterlyTaxCalculator() {
   const [totalDeductions, setTotalDeductions] = useState(5000);
   const [stateAbbr, setStateAbbr] = useState("NONE");
   const [priorYearTax, setPriorYearTax] = useState(0);
+
+  const { loadSaved, clearSaved } = useSavedInputs("quarterly-tax", {
+    q1Income, q2Income, q3Income, q4Income, totalDeductions, stateAbbr, priorYearTax,
+  });
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.q1Income !== undefined) setQ1Income(saved.q1Income);
+      if (saved.q2Income !== undefined) setQ2Income(saved.q2Income);
+      if (saved.q3Income !== undefined) setQ3Income(saved.q3Income);
+      if (saved.q4Income !== undefined) setQ4Income(saved.q4Income);
+      if (saved.totalDeductions !== undefined) setTotalDeductions(saved.totalDeductions);
+      if (saved.stateAbbr !== undefined) setStateAbbr(saved.stateAbbr);
+      if (saved.priorYearTax !== undefined) setPriorYearTax(saved.priorYearTax);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setQ1Income(20000);
+    setQ2Income(20000);
+    setQ3Income(20000);
+    setQ4Income(20000);
+    setTotalDeductions(5000);
+    setStateAbbr("NONE");
+    setPriorYearTax(0);
+    clearSaved();
+  };
 
   const quarterIncomes = [q1Income, q2Income, q3Income, q4Income];
   const setters = [setQ1Income, setQ2Income, setQ3Income, setQ4Income];
@@ -85,6 +116,7 @@ export default function QuarterlyTaxCalculator() {
       slug="quarterly-tax"
       category="taxes"
       description="Enter your expected income by quarter. See exactly what to pay the IRS each quarter and when it's due."
+      onReset={handleReset}
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {QUARTERLY_DUE_DATES.map((q, i) => (
@@ -141,6 +173,16 @@ export default function QuarterlyTaxCalculator() {
           subtext="15.3% self-employment tax"
         />
       </div>
+
+      <ShareResults
+        calculatorName="Quarterly Tax Calculator"
+        results={{
+          "Total Estimated Tax": fmt(results.totalTax),
+          "Even Quarterly Payment": fmt(results.evenPayment),
+          "SE Tax Portion": fmt(results.seTax),
+          "Net Income": fmt(results.netIncome),
+        }}
+      />
 
       {/* Safe harbor section */}
       {priorYearTax > 0 && (

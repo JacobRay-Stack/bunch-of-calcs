@@ -73,4 +73,8 @@ export const CALCULATOR_SERVICES: Record<string, string[]> = {
   "project-price": ["bonsai", "honeybook", "freshbooks"],
   "side-hustle-tax": ["turbotax", "quickbooks"],
   "quarterly-tax": ["turbotax", "quickbooks", "bonsai"],
+  "lifestyle-budget": ["quickbooks", "freshbooks", "wave"],
+  "client-value": ["bonsai", "honeybook", "freshbooks"],
+  "emergency-fund": ["quickbooks", "wave", "freshbooks"],
+  "hire-calculator": ["bonsai", "honeybook", "quickbooks"],
 };

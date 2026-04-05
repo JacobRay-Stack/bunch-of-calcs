@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import CalculatorLayout from "@/components/CalculatorLayout";
 import { buildCalculatorLink } from "@/lib/calculator-links";
+import { useSavedInputs } from "@/lib/use-saved-inputs";
 import SliderInput from "@/components/SliderInput";
 import HeroResult from "@/components/HeroResult";
 import ResultCard from "@/components/ResultCard";
 import StateSelector from "@/components/StateSelector";
 import SEOContent from "@/components/SEOContent";
 import FAQ from "@/components/FAQ";
+import ShareResults from "@/components/ShareResults";
+import ScenarioCompare from "@/components/ScenarioCompare";
+import { generateHowToJsonLd } from "@/lib/seo";
 import {
   calculateSETax,
   calculateFederalTax,
@@ -36,6 +40,31 @@ export default function SelfEmploymentTaxCalculator() {
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
   const [stateAbbr, setStateAbbr] = useState("NONE");
   const [retirementPct, setRetirementPct] = useState(0);
+
+  const { loadSaved, clearSaved } = useSavedInputs("self-employment-tax", {
+    grossIncome, deductions, filingStatus, stateAbbr, retirementPct,
+  });
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved) {
+      if (saved.grossIncome !== undefined) setGrossIncome(saved.grossIncome);
+      if (saved.deductions !== undefined) setDeductions(saved.deductions);
+      if (saved.filingStatus !== undefined) setFilingStatus(saved.filingStatus);
+      if (saved.stateAbbr !== undefined) setStateAbbr(saved.stateAbbr);
+      if (saved.retirementPct !== undefined) setRetirementPct(saved.retirementPct);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    setGrossIncome(80000);
+    setDeductions(5000);
+    setFilingStatus("single");
+    setStateAbbr("NONE");
+    setRetirementPct(0);
+    clearSaved();
+  };
 
   const results = useMemo(() => {
     const netIncome = grossIncome - deductions;
@@ -76,7 +105,21 @@ export default function SelfEmploymentTaxCalculator() {
   const pct = formatPercent;
 
   return (
-    <CalculatorLayout name="Self-Employment Tax Calculator" slug="self-employment-tax" category="taxes" description={`Estimate your SE tax (15.3%), federal income tax, state tax, and quarterly payments. Updated for the ${TAX_YEAR} tax year.`}>
+    <CalculatorLayout name="Self-Employment Tax Calculator" slug="self-employment-tax" category="taxes" description={`Estimate your SE tax (15.3%), federal income tax, state tax, and quarterly payments. Updated for the ${TAX_YEAR} tax year.`} onReset={handleReset} serviceContext={`Your estimated tax is ${fmt(results.effectiveTotalTax)}/yr -- these tools help you file, track deductions, and stay organized.`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(generateHowToJsonLd(
+          "How Self-Employment Tax Is Calculated",
+          [
+            "Start with your gross 1099 income",
+            "Subtract all deductible business expenses to get net income",
+            "Multiply net income by 92.35% to get the SE tax base",
+            "Apply the 15.3% SE tax rate to that base",
+            "Deduct half of the SE tax from your gross income (this reduces your income tax)",
+            "Calculate federal income tax on the remaining taxable income",
+          ]
+        )) }}
+      />
       <div className="space-y-5">
         <SliderInput label="Gross Self-Employment Income" value={grossIncome} onChange={setGrossIncome} min={0} max={500000} step={1000} type="currency" helpText="Total 1099 income before expenses" />
         <SliderInput label="Business Deductions" value={deductions} onChange={setDeductions} min={0} max={100000} step={500} type="currency" helpText="Total deductible business expenses" />
@@ -99,6 +142,26 @@ export default function SelfEmploymentTaxCalculator() {
         <ResultCard label="Annual Take-Home" value={fmt(results.takeHome)} subtext="After all taxes" />
         <ResultCard label="Monthly Take-Home" value={fmt(results.takeHome / 12)} subtext="Average per month" />
       </div>
+
+      <ShareResults
+        calculatorName="Self-Employment Tax Calculator"
+        results={{
+          "Total Annual Tax": fmt(results.effectiveTotalTax),
+          "Quarterly Payment": fmt(results.quarterlyPayment),
+          "Annual Take-Home": fmt(results.takeHome),
+          "Effective Tax Rate": pct(results.effectiveRate),
+        }}
+      />
+
+      <ScenarioCompare
+        currentResults={{
+          "Annual Tax": fmt(results.effectiveTotalTax),
+          "Quarterly Payment": fmt(results.quarterlyPayment),
+          "Take-Home": fmt(results.takeHome),
+          "Effective Rate": pct(results.effectiveRate),
+        }}
+        currentLabel="Current"
+      />
 
       {/* Retirement savings scenario */}
       <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
@@ -186,7 +249,7 @@ export default function SelfEmploymentTaxCalculator() {
 
       <SEOContent>
         <h2>What Is Self-Employment Tax?</h2>
-        <p>Self-employment tax is a federal tax that covers Social Security and Medicare contributions for people who work for themselves. When you work as an employee, your employer pays half of these taxes and you pay the other half through payroll withholding. As a freelancer or independent contractor, you pay both halves -- a combined rate of 15.3% on your net self-employment income.</p>
+        <p>Self-employment tax is a federal tax that covers Social Security and Medicare contributions for people who work for themselves. When you work as an employee, your employer pays half of these taxes and you pay the other half through payroll withholding. As a freelancer or independent contractor, you pay both halves -- a combined rate of 15.3% on your net self-employment income. Wondering how this compares to a regular job? Try the <a href="/1099-vs-w2">1099 vs W2 comparison</a>.</p>
         <p>The 15.3% rate breaks down into two parts: 12.4% goes to Social Security (on income up to $184,500 in {TAX_YEAR}) and 2.9% goes to Medicare (on all income, with no cap). If your net earnings exceed $200,000 as a single filer, you also owe an additional 0.9% Medicare surtax.</p>
 
         <h2>How Self-Employment Tax Is Calculated</h2>
@@ -201,7 +264,7 @@ export default function SelfEmploymentTaxCalculator() {
         </ol>
 
         <h2>Ways to Reduce Your Self-Employment Tax</h2>
-        <p>The most effective strategy is to maximize your business deductions. Every dollar you deduct reduces your net income, which directly reduces your SE tax. Common deductions for freelancers include:</p>
+        <p>The most effective strategy is to maximize your <a href="/tax-deductions">business deductions</a>. Every dollar you deduct reduces your net income, which directly reduces your SE tax. Common deductions for freelancers include:</p>
         <ul>
           <li><strong>Home office deduction</strong> -- $5 per square foot, up to 300 sq ft ($1,500 max)</li>
           <li><strong>Health insurance premiums</strong> -- 100% deductible if self-employed</li>
@@ -210,6 +273,7 @@ export default function SelfEmploymentTaxCalculator() {
           <li><strong>Mileage</strong> -- 70 cents per mile for business driving in {TAX_YEAR}</li>
           <li><strong>Internet and phone</strong> -- Business percentage of your bills</li>
         </ul>
+        <p>Use the <a href="/tax-deductions">Freelance Tax Deduction Estimator</a> to calculate your total deduction amount and see how much it lowers your tax bill. Once you know your rate, the <a href="/quarterly-tax">Quarterly Tax Payment Calculator</a> helps you plan each payment with exact due dates.</p>
       </SEOContent>
 
       <FAQ items={FAQ_ITEMS} />

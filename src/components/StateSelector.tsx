@@ -25,8 +25,8 @@ export default function StateSelector({ value, onChange }: StateSelectorProps) {
           </option>
         ))}
       </select>
-      <p className="text-xs text-gray-500 dark:text-gray-400">
-        State tax is estimated using the top marginal rate
+      <p className="text-xs text-amber-600 dark:text-amber-400">
+        Estimated using the top marginal rate -- your actual state tax may be lower
       </p>
     </div>
   );
