@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAllSlugs, getPostBySlug } from "@/lib/blog";
@@ -32,6 +33,13 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   Profit: { bg: "bg-amber-100 dark:bg-amber-900/40", text: "text-amber-700 dark:text-amber-300" },
 };
 
+const CATEGORY_HEROES: Record<string, string> = {
+  Taxes: "/blog/hero-taxes.png",
+  Pricing: "/blog/hero-pricing.png",
+  Profit: "/blog/hero-profit.png",
+  Planning: "/blog/hero-planning.png",
+};
+
 export default async function BlogPost({ params }: PageProps) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
@@ -40,6 +48,7 @@ export default async function BlogPost({ params }: PageProps) {
 
   const calculatorSlug = post.calculatorLink?.replace(/^\//, "") || "";
   const catColors = CATEGORY_COLORS[post.category] || { bg: "bg-gray-100 dark:bg-gray-800", text: "text-gray-600 dark:text-gray-300" };
+  const heroSrc = CATEGORY_HEROES[post.category] || CATEGORY_HEROES.Taxes;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -47,6 +56,17 @@ export default async function BlogPost({ params }: PageProps) {
         <Link href="/blog" className="text-sm text-teal-600 hover:text-teal-700 dark:text-teal-400">
           &larr; Back to blog
         </Link>
+      </div>
+
+      <div className="mb-8 overflow-hidden rounded-2xl">
+        <Image
+          src={heroSrc}
+          alt=""
+          width={1200}
+          height={400}
+          className="w-full h-auto object-cover"
+          priority
+        />
       </div>
 
       <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-10">

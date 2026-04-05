@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import calculators from "@/calculators";
 import { getAllPosts } from "@/lib/blog";
@@ -87,8 +88,11 @@ export default function Home() {
       />
 
       {/* Hero */}
-      <div className="grid items-center gap-8 md:grid-cols-2">
-        <div>
+      <div className="relative grid items-center gap-8 md:grid-cols-2">
+        <div className="absolute -left-8 -top-8 hidden opacity-[0.07] md:block dark:opacity-[0.04]">
+          <Image src="/hero-illustration.png" alt="" width={400} height={333} priority />
+        </div>
+        <div className="relative">
           <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-gray-100">
             Free Calculators for Freelancers
           </h1>

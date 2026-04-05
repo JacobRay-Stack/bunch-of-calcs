@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="#0D9488"/>
+
+  <!-- Calculator body -->
+  <rect x="120" y="80" width="272" height="352" rx="24" fill="white"/>
+
+  <!-- Screen -->
+  <rect x="152" y="112" width="208" height="72" rx="12" fill="#0D9488" opacity="0.15"/>
+
+  <!-- Screen text "BC" -->
+  <text x="256" y="165" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="48" fill="#0D9488">BC</text>
+
+  <!-- Button grid: 4x4 -->
+  <!-- Row 1 -->
+  <rect x="152" y="208" width="44" height="36" rx="8" fill="#F59E0B"/>
+  <rect x="206" y="208" width="44" height="36" rx="8" fill="#F59E0B"/>
+  <rect x="262" y="208" width="44" height="36" rx="8" fill="#F59E0B"/>
+  <rect x="316" y="208" width="44" height="36" rx="8" fill="#0D9488"/>
+
+  <!-- Row 2 -->
+  <rect x="152" y="256" width="44" height="36" rx="8" fill="#E5E7EB"/>
+  <rect x="206" y="256" width="44" height="36" rx="8" fill="#E5E7EB"/>
+  <rect x="262" y="256" width="44" height="36" rx="8" fill="#E5E7EB"/>
+  <rect x="316" y="256" width="44" height="36" rx="8" fill="#0D9488"/>
+
+  <!-- Row 3 -->
+  <rect x="152" y="304" width="44" height="36" rx="8" fill="#E5E7EB"/>
+  <rect x="206" y="304" width="44" height="36" rx="8" fill="#E5E7EB"/>
+  <rect x="262" y="304" width="44" height="36" rx="8" fill="#E5E7EB"/>
+  <rect x="316" y="304" width="44" height="36" rx="8" fill="#0D9488"/>
+
+  <!-- Row 4 -->
+  <rect x="152" y="352" width="44" height="52" rx="8" fill="#E5E7EB"/>
+  <rect x="206" y="352" width="44" height="52" rx="8" fill="#E5E7EB"/>
+  <rect x="262" y="352" width="44" height="52" rx="8" fill="#E5E7EB"/>
+  <rect x="316" y="352" width="44" height="52" rx="8" fill="#F59E0B"/>
+
+  <!-- Equals sign on bottom-right button -->
+  <line x1="326" y1="372" x2="350" y2="372" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="326" y1="382" x2="350" y2="382" stroke="white" stroke-width="3" stroke-linecap="round"/>
+</svg>
