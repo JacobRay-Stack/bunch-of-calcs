@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import calculators from "@/calculators";
 import { getAllPosts } from "@/lib/blog";
@@ -112,21 +111,9 @@ export default function Home() {
             </span>
           </div>
         </div>
-        <div className="hidden md:block">
-          <Image
-            src="/hero-illustration.png"
-            alt="Freelancer calculator dashboard showing hourly rate, tax estimates, and income charts"
-            width={560}
-            height={460}
-            className="w-full h-auto rounded-xl"
-            priority
-          />
+        <div>
+          <MiniCalculator />
         </div>
-      </div>
-
-      {/* Mobile: show MiniCalculator instead of illustration */}
-      <div className="mt-6 md:hidden">
-        <MiniCalculator />
       </div>
 
       {/* Trust signals - moved higher (#30) */}
